@@ -98,10 +98,77 @@ REAL_PRODUCTS = [
 
 STATUSES = ["진행중","진행중","진행중","진행중","오늘마감","마감임박","오픈예정"]
 
+def load_real_data():
+    """real_gonggu.json에서 직접 입력한 실제 공구 데이터를 읽어 기존 형식으로 변환"""
+    real_path = DATA_DIR / "real_gonggu.json"
+    if not real_path.exists():
+        return []
+    try:
+        with open(real_path, encoding="utf-8") as f:
+            items = json.load(f)
+    except Exception:
+        return []
+
+    results = []
+    for item in items:
+        end_str = item.get("end_date", "")
+        # end_date가 "YYYY-MM-DD" 형식이면 MM/DD로 변환
+        if len(end_str) == 10 and "-" in end_str:
+            end_display = end_str[5:].replace("-", "/")
+        else:
+            end_display = end_str
+
+        orig  = int(item.get("original_price", 0) or 0)
+        sale  = int(item.get("sale_price", 0) or 0)
+        disc  = item.get("discount_rate") or (round((1 - sale/orig)*100) if orig > 0 else 0)
+
+        handle = item.get("handle", "").lstrip("@")
+        platform = item.get("platform", "instagram")
+        if platform == "instagram":
+            inf_url = f"https://instagram.com/{handle}"
+        else:
+            inf_url = f"https://blog.naver.com/{handle}"
+
+        results.append({
+            "uid": item.get("id", f"real_{hash(item.get('product_name',''))}"),
+            "title": f"[공구] {item.get('product_name','')}",
+            "link": item.get("link", inf_url),
+            "description": item.get("description", ""),
+            "date": item.get("created_at", datetime.now().strftime("%Y-%m-%d")),
+            "is_real": True,
+            "gonggu_info": {
+                "is_gonggu":      True,
+                "product_name":   item.get("product_name", ""),
+                "brand":          item.get("brand", ""),
+                "price":          f"{sale:,}원",
+                "original_price": f"{orig:,}원",
+                "discount":       f"{disc}%",
+                "period":         end_display,
+                "status":         item.get("status", "진행중"),
+                "keywords_found": ["공구", "실제공구"]
+            },
+            "category": item.get("category", "기타"),
+            "influencer": {
+                "id":        0,
+                "name":      item.get("influencer", ""),
+                "handle":    handle,
+                "platform":  platform,
+                "url":       inf_url,
+                "followers": item.get("followers", ""),
+                "category":  "육아"
+            }
+        })
+    return results
+
+
 def build_data():
     random.seed(int(datetime.now().strftime("%Y%m%d")))  # 날짜별 고정 시드
     now = datetime.now()
     results = []
+
+    # ① 실제 공구 데이터 먼저 추가 (북마크릿으로 저장된 것)
+    real_items = load_real_data()
+    results.extend(real_items)
 
     shuffled = REAL_PRODUCTS.copy()
     random.shuffle(shuffled)
@@ -295,6 +362,13 @@ body{{font-family:-apple-system,BlinkMacSystemFont,'Noto Sans KR',sans-serif;bac
 .st-오늘마감{{background:#FFEBEE;color:#C62828;animation:blink 1.5s ease-in-out infinite}}
 .st-오픈예정{{background:#E3F2FD;color:#1565C0}}
 @keyframes blink{{0%,100%{{opacity:1}}50%{{opacity:.5}}}}
+
+.real-badge{{
+  background:linear-gradient(135deg,#43A047,#00897B);color:#fff;
+  padding:.15rem .45rem;border-radius:8px;font-size:.62rem;font-weight:800;
+  white-space:nowrap;letter-spacing:.02em
+}}
+.real-card{{border:2px solid #A5D6A7 !important;box-shadow:0 2px 16px rgba(76,175,80,.18) !important}}
 
 .card-body{{padding:.4rem 1rem .8rem}}
 .prod-name{{font-size:.95rem;font-weight:800;line-height:1.4;margin-bottom:.45rem}}
@@ -497,7 +571,7 @@ function render(){{
     const i=d.influencer, g=d.gonggu_info;
     const av=i.platform==='instagram'?'av-ig':'av-nb';
     const ic=i.platform==='instagram'?'📸':'📝';
-    return `<div class="card" onclick="openModal('${{d.uid}}')">
+    return `<div class="card${{d.is_real?' real-card':''}}" onclick="openModal('${{d.uid}}')">
       <div class="card-top">
         <div class="inf-row">
           <div class="avatar ${{av}}">${{i.name[0]}}</div>
@@ -506,7 +580,10 @@ function render(){{
             <div class="inf-handle">${{ic}} @${{i.handle}} · ${{i.followers}}</div>
           </div>
         </div>
-        <span class="status st-${{g.status}}">${{g.status}}</span>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px">
+          ${{d.is_real?'<span class="real-badge">✅ 실제 공구</span>':''}}
+          <span class="status st-${{g.status}}">${{g.status}}</span>
+        </div>
       </div>
       <div class="card-body">
         ${{g.brand?`<div class="brand-tag">${{g.brand}}</div>`:''}}
@@ -534,6 +611,7 @@ function openModal(uid){{
       <h3>${{g.product_name||d.title}}</h3>
       <button class="close-btn" onclick="closeModal()">×</button>
     </div>
+    ${{d.is_real?'<div style="background:#E8F5E9;border-radius:10px;padding:.4rem .8rem;margin-bottom:.8rem;font-size:.8rem;color:#2E7D32;font-weight:700">✅ 직접 등록한 실제 공구 데이터입니다</div>':''}}
     <div class="inf-card">
       <div class="avatar ${{av}}" style="width:44px;height:44px">${{i.name[0]}}</div>
       <div>

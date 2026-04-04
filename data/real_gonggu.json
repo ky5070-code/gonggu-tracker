@@ -1,1 +1,21 @@
-[]
+[
+  {
+    "id": "real_1775312820806",
+    "influencer": "우당탕탕 띠오월드",
+    "handle": "",
+    "platform": "instagram",
+    "followers": "",
+    "category": "의류/패션",
+    "brand": "폴프랜즈",
+    "product_name": "양말 26ss 선오픈",
+    "original_price": 10000,
+    "sale_price": 10000,
+    "discount_rate": 0,
+    "status": "진행중",
+    "end_date": "2026-04-11",
+    "link": "https://blog.naver.com/hamham24/224199384907",
+    "description": "",
+    "created_at": "2026-04-04",
+    "is_real": true
+  }
+]

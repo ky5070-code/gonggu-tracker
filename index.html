@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>🍼 육아 공구 모아보기</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --pink:#FF6B9D;--pink-light:#FFF0F5;
+  --teal:#00BFA5;--teal-light:#E0F7F4;
+  --yellow:#FFD93D;--orange:#FF6900;
+  --dark:#1A1A2E;--gray:#6B7280;--light:#F7F8FC;
+  --white:#fff;
+  --r:14px;--shadow:0 2px 16px rgba(0,0,0,.07);--shadow2:0 8px 32px rgba(0,0,0,.13)
+}
+body{font-family:-apple-system,BlinkMacSystemFont,'Noto Sans KR',sans-serif;background:var(--light);color:var(--dark)}
+
+/* ── HEADER ── */
+.header{
+  background:linear-gradient(135deg,#FF6B9D 0%,#FF8C69 100%);
+  color:#fff;padding:1.25rem 1rem .8rem;text-align:center;
+  position:sticky;top:0;z-index:200;
+  box-shadow:0 4px 20px rgba(255,107,157,.35)
+}
+.header h1{font-size:1.6rem;font-weight:900;letter-spacing:-.5px}
+.header .sub{font-size:.82rem;opacity:.88;margin-top:.2rem}
+.last-update{font-size:.72rem;opacity:.7;margin-top:.35rem}
+
+/* ── STATS ── */
+.stats{display:flex;justify-content:center;gap:2rem;padding:.9rem 1rem;background:#fff;border-bottom:1px solid #f0f0f0;flex-wrap:wrap}
+.s-item{text-align:center}
+.s-num{font-size:1.55rem;font-weight:900;color:var(--pink)}
+.s-label{font-size:.68rem;color:var(--gray);margin-top:.1rem;letter-spacing:.03em}
+
+/* ── SEARCH ── */
+.search-wrap{padding:.8rem 1rem;background:#fff;border-bottom:1px solid #f0f0f0}
+.search-inner{max-width:600px;margin:0 auto;position:relative}
+.search-inner input{
+  width:100%;padding:.7rem 1rem .7rem 2.6rem;
+  border:2px solid #e5e7eb;border-radius:40px;font-size:.92rem;outline:none;
+  transition:border-color .2s
+}
+.search-inner input:focus{border-color:var(--pink)}
+.search-inner::before{content:"🔍";position:absolute;left:.9rem;top:50%;transform:translateY(-50%);font-size:.9rem}
+
+/* ── PLATFORM TABS ── */
+.platform-tabs{display:flex;gap:.5rem;padding:.6rem 1rem;background:#fff;border-bottom:1px solid #f0f0f0}
+.ptab{padding:.35rem .9rem;border-radius:20px;font-size:.8rem;font-weight:700;cursor:pointer;border:1.5px solid #e0e0e0;background:#fff;transition:all .2s}
+.ptab.on{background:var(--dark);color:#fff;border-color:var(--dark)}
+
+/* ── CATEGORY FILTER ── */
+.cat-bar{padding:.6rem 1rem;overflow-x:auto;white-space:nowrap;background:#fff;border-bottom:1px solid #f0f0f0;scrollbar-width:none}
+.cat-bar::-webkit-scrollbar{display:none}
+.chip{
+  display:inline-block;padding:.35rem .9rem;margin-right:.4rem;
+  border-radius:20px;font-size:.78rem;font-weight:600;cursor:pointer;
+  border:1.5px solid #e0e0e0;background:#fff;color:#555;transition:all .2s
+}
+.chip:hover{border-color:var(--pink);color:var(--pink)}
+.chip.on{background:var(--pink);color:#fff;border-color:var(--pink)}
+.chip .cnt{font-size:.68rem;opacity:.75;margin-left:.15rem}
+
+/* ── SORT BAR ── */
+.sort-bar{display:flex;justify-content:space-between;align-items:center;padding:.5rem 1rem}
+.res-cnt{font-size:.82rem;color:var(--gray)}
+.sort-sel{padding:.35rem .7rem;border:1px solid #ddd;border-radius:8px;font-size:.78rem;background:#fff;outline:none}
+
+/* ── GRID ── */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:.9rem;padding:.4rem 1rem 3rem;max-width:1240px;margin:0 auto}
+
+/* ── CARD ── */
+.card{
+  background:#fff;border-radius:var(--r);box-shadow:var(--shadow);
+  cursor:pointer;transition:all .25s;overflow:hidden;position:relative
+}
+.card:hover{box-shadow:var(--shadow2);transform:translateY(-3px)}
+
+.card-top{padding:.9rem 1rem .5rem;display:flex;justify-content:space-between;align-items:flex-start}
+.inf-row{display:flex;align-items:center;gap:.55rem}
+.avatar{
+  width:38px;height:38px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:.85rem;font-weight:800;color:#fff;flex-shrink:0
+}
+.av-ig{background:linear-gradient(135deg,#833AB4,#FD1D1D,#FCB045)}
+.av-nb{background:linear-gradient(135deg,#03C75A,#00863C)}
+.inf-name{font-size:.85rem;font-weight:800}
+.inf-handle{font-size:.7rem;color:var(--gray)}
+
+.status{
+  padding:.2rem .55rem;border-radius:10px;font-size:.68rem;font-weight:800;
+  white-space:nowrap;flex-shrink:0
+}
+.st-진행중{background:#E8F5E9;color:#2E7D32}
+.st-마감임박{background:#FFF3E0;color:#E65100}
+.st-오늘마감{background:#FFEBEE;color:#C62828;animation:blink 1.5s ease-in-out infinite}
+.st-오픈예정{background:#E3F2FD;color:#1565C0}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.5}}
+
+.card-body{padding:.4rem 1rem .8rem}
+.prod-name{font-size:.95rem;font-weight:800;line-height:1.4;margin-bottom:.45rem}
+.brand-tag{
+  display:inline-block;background:var(--teal-light);color:#00695C;
+  padding:.1rem .45rem;border-radius:6px;font-size:.68rem;font-weight:700;margin-bottom:.4rem
+}
+.price-row{display:flex;align-items:baseline;gap:.45rem;flex-wrap:wrap}
+.price{font-size:1.18rem;font-weight:900;color:var(--pink)}
+.orig{font-size:.78rem;color:#aaa;text-decoration:line-through}
+.disc{background:var(--pink);color:#fff;padding:.15rem .45rem;border-radius:6px;font-size:.72rem;font-weight:800}
+
+.card-foot{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:.55rem 1rem;border-top:1px solid #f5f5f5;font-size:.73rem;color:var(--gray)
+}
+.cat-tag{background:#F3F4F6;color:#555;padding:.15rem .5rem;border-radius:6px;font-size:.7rem;font-weight:600}
+
+/* ── MODAL ── */
+.overlay{
+  display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);
+  z-index:500;justify-content:center;align-items:center;padding:1rem
+}
+.overlay.show{display:flex}
+.modal{
+  background:#fff;border-radius:20px;max-width:480px;width:100%;
+  max-height:88vh;overflow-y:auto;padding:1.5rem;
+  box-shadow:0 20px 60px rgba(0,0,0,.2)
+}
+.modal-head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:1rem}
+.modal-head h3{font-size:1.05rem;font-weight:800;line-height:1.4;flex:1;padding-right:.5rem}
+.close-btn{background:none;border:none;font-size:1.4rem;cursor:pointer;color:#aaa;flex-shrink:0}
+.info-box{background:var(--light);border-radius:12px;padding:1rem;margin-bottom:1rem}
+.info-row{display:flex;justify-content:space-between;align-items:center;padding:.35rem 0;border-bottom:1px solid #eee;font-size:.88rem}
+.info-row:last-child{border:none}
+.info-val{font-weight:700}
+.go-btn{
+  display:block;text-align:center;
+  background:linear-gradient(135deg,var(--pink),#FF8C69);
+  color:#fff;padding:.85rem;border-radius:12px;
+  text-decoration:none;font-weight:800;font-size:.95rem;
+  box-shadow:0 4px 15px rgba(255,107,157,.35)
+}
+.inf-card{display:flex;align-items:center;gap:.75rem;padding:.8rem;background:#f9f9f9;border-radius:12px;margin-bottom:1rem}
+
+/* ── EMPTY ── */
+.empty{grid-column:1/-1;text-align:center;padding:4rem 1rem;color:var(--gray)}
+.empty .ico{font-size:3rem;margin-bottom:1rem}
+
+/* ── FOOTER ── */
+footer{text-align:center;padding:1.5rem 1rem;font-size:.75rem;color:#bbb}
+
+@media(max-width:640px){
+  .header h1{font-size:1.35rem}
+  .stats{gap:1.2rem}
+  .s-num{font-size:1.3rem}
+  .grid{grid-template-columns:1fr;padding:.4rem .75rem 3rem}
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>🍼 육아 공구 모아보기</h1>
+  <p class="sub">인기 육아 인플루언서들의 공동구매 한눈에 보기</p>
+  <p class="last-update" id="lu">업데이트 로딩중...</p>
+</div>
+
+<div class="stats">
+  <div class="s-item"><div class="s-num" id="sTotal">-</div><div class="s-label">TODAY 공구</div></div>
+  <div class="s-item"><div class="s-num" id="sInf">-</div><div class="s-label">참여 인플루언서</div></div>
+  <div class="s-item"><div class="s-num" id="sActive">-</div><div class="s-label">진행중</div></div>
+  <div class="s-item"><div class="s-num" id="sEnd">-</div><div class="s-label">오늘마감</div></div>
+</div>
+
+<div class="search-wrap">
+  <div class="search-inner">
+    <input type="text" id="q" placeholder="브랜드·상품명·인플루언서 검색..." oninput="render()">
+  </div>
+</div>
+
+<div class="platform-tabs">
+  <button class="ptab on" data-p="all"   onclick="setPlatform('all')">전체</button>
+  <button class="ptab"    data-p="instagram"  onclick="setPlatform('instagram')">📸 인스타그램</button>
+  <button class="ptab"    data-p="naver_blog" onclick="setPlatform('naver_blog')">📝 네이버 블로그</button>
+</div>
+
+<div class="cat-bar" id="catBar">
+  <span class="chip on" data-c="all" onclick="setCat('all')">전체</span>
+</div>
+
+<div class="sort-bar">
+  <span class="res-cnt" id="resCnt">0건</span>
+  <select class="sort-sel" id="sortSel" onchange="render()">
+    <option value="latest">최신순</option>
+    <option value="discount">할인율 높은순</option>
+    <option value="ending">마감임박순</option>
+    <option value="price_lo">가격 낮은순</option>
+    <option value="price_hi">가격 높은순</option>
+  </select>
+</div>
+
+<div class="grid" id="grid"></div>
+
+<footer>
+  매일 오전 8시 자동 업데이트 · 총 20명 인플루언서 모니터링<br>
+  인스타그램 + 네이버 블로그 실시간 공구 수집
+</footer>
+
+<div class="overlay" id="ov" onclick="closeModal(event)">
+  <div class="modal" id="modal"></div>
+</div>
+
+<script>
+const D = [{"uid": "6c350706d7b4", "title": "[공구] 원목 쌓기 블록 100pcs + 보관함", "link": "https://instagram.com/unidongdong", "description": "우니동동이(가) 진행하는 몬테소리 원목 쌓기 블록 100pcs + 보관함 공동구매. 공구가 28,900원 (31% 할인)", "date": "2026-04-04", "gonggu_info": {"is_gonggu": true, "product_name": "원목 쌓기 블록 100pcs + 보관함", "brand": "몬테소리", "price": "28,900원", "original_price": "42,000원", "discount": "31%", "period": "04/12", "status": "오픈예정", "keywords_found": ["공구", "공동구매", "특가"]}, "category": "장난감/교구", "influencer": {"id": 1, "name": "우니동동", "handle": "unidongdong", "platform": "instagram", "url": "https://instagram.com/unidongdong", "followers": "239K", "category": "육아/재테크"}}, {"uid": "8e31956014d3", "title": "[공구] 뽀로로 영어 전집 20권 + 오디오펜", "link": "https://instagram.com/unidongdong", "description": "우니동동이(가) 진행하는 아이코닉스 뽀로로 영어 전집 20권 + 오디오펜 공동구매. 공구가 89,000원 (36% 할인)", "date": "2026-04-04", "gonggu_info": {"is_gonggu": true, "product_name": "뽀로로 영어 전집 20권 + 오디오펜", "brand": "아이코닉스", "price": "89,000원", "original_price": "138,000원", "discount": "36%", "period": "04/06", "status": "마감임박", "keywords_found": ["공구", "공동구매", "특가"]}, "category": "교육/도서", "influencer": {"id": 1, "name": "우니동동", "handle": "unidongdong", "platform": "instagram", "url": "https://instagram.com/unidongdong", "followers": "239K", "category": "육아/재테크"}}, {"uid": "4eb7f7f216d4", "title": "[공구] 엘빈즈 아기밥솥 이유식 메이커", "link": "https://instagram.com/zzu_ni", "description": "소을맘이(가) 진행하는 엘빈즈 엘빈즈 아기밥솥 이유식 메이커 공동구매. 공구가 64,900원 (34% 할인)", "date": "2026-04-04", "gonggu_info": {"is_gonggu": true, "product_name": "엘빈즈 아기밥솥 이유식 메이커", "brand": "엘빈즈", "price": "64,900원", "original_price": "99,000원", "discount": "34%", "period": "04/04", "status": "오늘마감", "keywords_found": ["공구", "공동구매", "특가"]}, "category": "이유식/식품", "influencer": {"id": 2, "name": "소을맘", "handle": "zzu_ni", "platform": "instagram", "url": "https://instagram.com/zzu_ni", "followers": "136K", "category": "육아/라이프"}}, {"uid": "8e5acca91703", "title": "[공구] 필립스 아벤트 SCF 전동 유축기", "link": "https://instagram.com/peach0724s2", "description": "사랑댁이(가) 진행하는 아벤트 필립스 아벤트 SCF 전동 유축기 공동구매. 공구가 129,000원 (35% 할인)", "date": "2026-04-04", "gonggu_info": {"is_gonggu": true, "product_name": "필립스 아벤트 SCF 전동 유축기", "brand": "아벤트", "price": "129,000원", "original_price": "198,000원", "discount": "35%", "period": "04/07", "status": "진행중", "keywords_found": ["공구", "공동구매", "특가"]}, "category": "수유/젖병", "influencer": {"id": 6, "name": "사랑댁", "handle": "peach0724s2", "platform": "instagram", "url": "https://instagram.com/peach0724s2", "followers": "94K", "category": "육아/키즈"}}, {"uid": "ac567637055e", "title": "[공구] 미미월드 보온 젖병 가방+쿨러팩 세트", "link": "https://instagram.com/peach0724s2", "description": "사랑댁이(가) 진행하는 미미월드 미미월드 보온 젖병 가방+쿨러팩 세트 공동구매. 공구가 15,900원 (28% 할인)", "date": "2026-04-04", "gonggu_info": {"is_gonggu": true, "product_name": "미미월드 보온 젖병 가방+쿨러팩 세트", "brand": "미미월드", "price": "15,900원", "original_price": "22,000원", "discount": "28%", "period": "04/04", "status": "오늘마감", "keywords_found": ["공구", "공동구매", "특가"]}, "category": "수유/젖병", "influencer": {"id": 6, "name": "사랑댁", "handle": "peach0724s2", "platform": "instagram", "url": "https://instagram.com/peach0724s2", "followers": "94K", "category": "육아/키즈"}}, {"uid": "3de83771bd82", "title": "[공구] 아이챌린지 B단계 (2세) 4개월 구독", "link": "https://instagram.com/peach0724s2", "description": "사랑댁이(가) 진행하는 샘토이 아이챌린지 B단계 (2세) 4개월 구독 공동구매. 공구가 68,000원 (31% 할인)", "date": "2026-04-04", "gonggu_info": {"is_gonggu": true, "product_name": "아이챌린지 B단계 (2세) 4개월 구독", "brand": "샘토이", "price": "68,000원", "original_price": "98,000원", "discount": "31%", "period": "04/11", "status": "오픈예정", "keywords_found": ["공구", "공동구매", "특가"]}, "category": "교육/도서", "influencer": {"id": 6, "name": "사랑댁", "handle": "peach0724s2", "platform": "instagram", "url": "https://instagram.com/peach0724s2", "followers": "94K", "category": "육아/키즈"}}, {"uid": "b948a70c4d28", "title": "[공구] 미니미니 여아 드레스 원피스 2종", "link": "https://instagram.com/may__miin", "description": "메이민맘이(가) 진행하는 미니미니 미니미니 여아 드레스 원피스 2종 공동구매. 공구가 28,500원 (32% 할인)", "date": "2026-04-04", "gonggu_info": {"is_gonggu": true, "product_name": "미니미니 여아 드레스 원피스 2종", "brand": "미니미니", "price": "28,500원", "original_price": "42,000원", "discount": "32%", "period": "04/04", "status": "오늘마감", "keywords_found": ["공구", "공동구매", "특가"]}, "category": "의류/패션", "influencer": {"id": 7, "name": "메이민맘", "handle": "may__miin", "platform": "instagram", "url": "https://instagram.com/may__miin", "followers": "65K", "category": "키즈/육아"}}, {"uid": "a9d174c0199f", "title": "[공구] 닥터노 베이비 선크림 SPF50+ PA++++ 50ml×3", "link": "https://instagram.com/honey_momlog", "description": "꿀단지맘이(가) 진행하는 닥터노 닥터노 베이비 선크림 SPF50+ PA++++ 50ml×3 공동구매. 공구가 28,500원 (32% 할인)", "date": "2026-04-04", "gonggu_info": {"is_gonggu": true, "product_name": "닥터노 베이비 선크림 SPF50+ PA++++ 50ml×3", "brand": "닥터노", "price": "28,500원", "original_price": "42,000원", "discount": "32%", "period": "04/07", "status": "진행중", "keywords_found": ["공구", "공동구매", "특가"]}, "category": "스킨케어", "influencer": {"id": 8, "name": "꿀단지맘", "handle": "honey_momlog", "platform": "instagram", "url": "https://instagram.com/honey_momlog", "followers": "58K", "category": "육아/공구"}}, {"uid": "596a2b4009f1", "title": "[공구] 코지 다목적 힙시트 캐리어", "link": "https://instagram.com/dodam_momlife", "description": "도담맘이(가) 진행하는 코지 코지 다목적 힙시트 캐리어 공동구매. 공구가 79,000원 (34% 할인)", "date": "2026-04-04", "gonggu_info": {"is_gonggu": true, "product_name": "코지 다목적 힙시트 캐리어", "brand": "코지", "price": "79,000원", "original_price": "119,000원", "discount": "34%", "period": "04/09", "status": "진행중", "keywords_found": ["공구", "공동구매", "특가"]}, "category": "외출용품", "influencer": {"id": 10, "name": "도담맘", "handle": "dodam_momlife", "platform": "instagram", "url": "https://instagram.com/dodam_momlife", "followers": "48K", "category": "육아"}}, {"uid": "672d663adfe9", "title": "[공구] 말랑 촉감 공 12종 세트", "link": "https://instagram.com/dodam_momlife", "description": "도담맘이(가) 진행하는 사이언픽 말랑 촉감 공 12종 세트 공동구매. 공구가 19,900원 (33% 할인)", "date": "2026-04-04", "gonggu_info": {"is_gonggu": true, "product_name": "말랑 촉감 공 12종 세트", "brand": "사이언픽", "price": "19,900원", "original_price": "29,800원", "discount": "33%", "period": "04/09", "status": "진행중", "keywords_found": ["공구", "공동구매", "특가"]}, "category": "장난감/교구", "influencer": {"id": 10, "name": "도담맘", "handle": "dodam_momlife", "platform": "instagram", "url": "https://instagram.com/dodam_momlife", "followers": "48K", "category": "육아"}}, {"uid": "e2e82da30586", "title": "[공구] 압착 과일즙 사과+배 혼합 30팩", "link": "https://instagram.com/moms_closet_kr", "description": "맘스클로젯이(가) 진행하는 아이배냇 압착 과일즙 사과+배 혼합 30팩 공동구매. 공구가 24,900원 (31% 할인)", "date": "2026-04-04", "gonggu_info": {"is_gonggu": true, "product_name": "압착 과일즙 사과+배 혼합 30팩", "brand": "아이배냇", "price": "24,900원", "original_price": "36,000원", "discount": "31%", "period": "04/10", "status": "진행중", "keywords_found": ["공구", "공동구매", "특가"]}, "category": "이유식/식품", "influencer": {"id": 11, "name": "맘스클로젯", "handle": "moms_closet_kr", "platform": "instagram", "url": "https://instagram.com/moms_closet_kr", "followers": "45K", "category": "키즈패션"}}, {"uid": "2dc14fd81079", "title": "[공구] 수오미 코세척기 + 식염수 3개월분", "link": "https://instagram.com/moms_closet_kr", "description": "맘스클로젯이(가) 진행하는 수오미 수오미 코세척기 + 식염수 3개월분 공동구매. 공구가 28,500원 (32% 할인)", "date": "2026-04-04", "gonggu_info": {"is_gonggu": true, "product_name": "수오미 코세척기 + 식염수 3개월분", "brand": "수오미", "price": "28,500원", "original_price": "42,000원", "discount": "32%", "period": "04/10", "status": "진행중", "keywords_found": ["공구", "공동구매", "특가"]}, "category": "기저귀/위생", "influencer": {"id": 11, "name": "맘스클로젯", "handle": "moms_closet_kr", "platform": "instagram", "url": "https://instagram.com/moms_closet_kr", "followers": "45K", "category": "키즈패션"}}, {"uid": "8ab68cec8bff", "title": "[공구] 마미포코 팬티기저귀 XL 2팩+물티슈 10팩", "link": "https://instagram.com/chorong_mama_", "description": "초롱맘이(가) 진행하는 마미포코 마미포코 팬티기저귀 XL 2팩+물티슈 10팩 공동구매. 공구가 35,500원 (34% 할인)", "date": "2026-04-04", "gonggu_info": {"is_gonggu": true, "product_name": "마미포코 팬티기저귀 XL 2팩+물티슈 10팩", "brand": "마미포코", "price": "35,500원", "original_price": "54,000원", "discount": "34%", "period": "04/11", "status": "오픈예정", "keywords_found": ["공구", "공동구매", "특가"]}, "category": "기저귀/위생", "influencer": {"id": 13, "name": "초롱맘", "handle": "chorong_mama_", "platform": "instagram", "url": "https://instagram.com/chorong_mama_", "followers": "39K", "category": "육아"}}, {"uid": "3a98b026a5b9", "title": "[공구] 한글이 야호 시즌2 전집 30권+DVD", "link": "https://instagram.com/chorong_mama_", "description": "초롱맘이(가) 진행하는 EBS미디어 한글이 야호 시즌2 전집 30권+DVD 공동구매. 공구가 79,000원 (39% 할인)", "date": "2026-04-04", "gonggu_info": {"is_gonggu": true, "product_name": "한글이 야호 시즌2 전집 30권+DVD", "brand": "EBS미디어", "price": "79,000원", "original_price": "129,000원", "discount": "39%", "period": "04/09", "status": "진행중", "keywords_found": ["공구", "공동구매", "특가"]}, "category": "교육/도서", "influencer": {"id": 13, "name": "초롱맘", "handle": "chorong_mama_", "platform": "instagram", "url": "https://instagram.com/chorong_mama_", "followers": "39K", "category": "육아"}}, {"uid": "342193dd7ee6", "title": "[공구] 유풍 퍼즐 놀이매트 두께4cm 200×140", "link": "https://blog.naver.com/honey_ug_log", "description": "꿀육아로그이(가) 진행하는 유풍 유풍 퍼즐 놀이매트 두께4cm 200×140 공동구매. 공구가 52,900원 (33% 할인)", "date": "2026-04-04", "gonggu_info": {"is_gonggu": true, "product_name": "유풍 퍼즐 놀이매트 두께4cm 200×140", "brand": "유풍", "price": "52,900원", "original_price": "79,000원", "discount": "33%", "period": "04/07", "status": "진행중", "keywords_found": ["공구", "공동구매", "특가"]}, "category": "가구/인테리어", "influencer": {"id": 16, "name": "꿀육아로그", "handle": "honey_ug_log", "platform": "naver_blog", "url": "https://blog.naver.com/honey_ug_log", "followers": "일방문 8천+", "category": "육아/공구"}}, {"uid": "b6cc39addf5e", "title": "[공구] 마미포코 팬티기저귀 XL 2팩+물티슈 10팩", "link": "https://blog.naver.com/green_baby_log", "description": "초록이네육아이(가) 진행하는 마미포코 마미포코 팬티기저귀 XL 2팩+물티슈 10팩 공동구매. 공구가 35,500원 (34% 할인)", "date": "2026-04-04", "gonggu_info": {"is_gonggu": true, "product_name": "마미포코 팬티기저귀 XL 2팩+물티슈 10팩", "brand": "마미포코", "price": "35,500원", "original_price": "54,000원", "discount": "34%", "period": "04/06", "status": "마감임박", "keywords_found": ["공구", "공동구매", "특가"]}, "category": "기저귀/위생", "influencer": {"id": 18, "name": "초록이네육아", "handle": "green_baby_log", "platform": "naver_blog", "url": "https://blog.naver.com/green_baby_log", "followers": "일방문 5천+", "category": "육아"}}, {"uid": "9fe859445a59", "title": "[공구] 뽀로로 영어 전집 20권 + 오디오펜", "link": "https://blog.naver.com/sonagi_mama_kr", "description": "소나기맘이(가) 진행하는 아이코닉스 뽀로로 영어 전집 20권 + 오디오펜 공동구매. 공구가 89,000원 (36% 할인)", "date": "2026-04-04", "gonggu_info": {"is_gonggu": true, "product_name": "뽀로로 영어 전집 20권 + 오디오펜", "brand": "아이코닉스", "price": "89,000원", "original_price": "138,000원", "discount": "36%", "period": "04/06", "status": "마감임박", "keywords_found": ["공구", "공동구매", "특가"]}, "category": "교육/도서", "influencer": {"id": 19, "name": "소나기맘", "handle": "sonagi_mama_kr", "platform": "naver_blog", "url": "https://blog.naver.com/sonagi_mama_kr", "followers": "일방문 5천+", "category": "육아/리뷰"}}, {"uid": "a8b3a8c53af7", "title": "[공구] 피셔프라이스 뮤직컵 모빌 침대부착형", "link": "https://blog.naver.com/sonagi_mama_kr", "description": "소나기맘이(가) 진행하는 피셔프라이스 피셔프라이스 뮤직컵 모빌 침대부착형 공동구매. 공구가 38,500원 (34% 할인)", "date": "2026-04-04", "gonggu_info": {"is_gonggu": true, "product_name": "피셔프라이스 뮤직컵 모빌 침대부착형", "brand": "피셔프라이스", "price": "38,500원", "original_price": "58,000원", "discount": "34%", "period": "04/11", "status": "오픈예정", "keywords_found": ["공구", "공동구매", "특가"]}, "category": "장난감/교구", "influencer": {"id": 19, "name": "소나기맘", "handle": "sonagi_mama_kr", "platform": "naver_blog", "url": "https://blog.naver.com/sonagi_mama_kr", "followers": "일방문 5천+", "category": "육아/리뷰"}}, {"uid": "258858644c83", "title": "[공구] 오가닉 당근 단호박 이유식 파우치 10팩", "link": "https://blog.naver.com/haru_one_mom", "description": "하루하나육아이(가) 진행하는 베이비본죽 오가닉 당근 단호박 이유식 파우치 10팩 공동구매. 공구가 18,900원 (32% 할인)", "date": "2026-04-04", "gonggu_info": {"is_gonggu": true, "product_name": "오가닉 당근 단호박 이유식 파우치 10팩", "brand": "베이비본죽", "price": "18,900원", "original_price": "28,000원", "discount": "32%", "period": "04/05", "status": "마감임박", "keywords_found": ["공구", "공동구매", "특가"]}, "category": "이유식/식품", "influencer": {"id": 20, "name": "하루하나육아", "handle": "haru_one_mom", "platform": "naver_blog", "url": "https://blog.naver.com/haru_one_mom", "followers": "일방문 4천+", "category": "육아"}}, {"uid": "446c8a6bf2f6", "title": "[공구] 뽀로로 영어 전집 20권 + 오디오펜", "link": "https://instagram.com/zzu_ni", "description": "소을맘이(가) 진행하는 아이코닉스 뽀로로 영어 전집 20권 + 오디오펜 공동구매. 공구가 89,000원 (36% 할인)", "date": "2026-04-03", "gonggu_info": {"is_gonggu": true, "product_name": "뽀로로 영어 전집 20권 + 오디오펜", "brand": "아이코닉스", "price": "89,000원", "original_price": "138,000원", "discount": "36%", "period": "04/09", "status": "진행중", "keywords_found": ["공구", "공동구매", "특가"]}, "category": "교육/도서", "influencer": {"id": 2, "name": "소을맘", "handle": "zzu_ni", "platform": "instagram", "url": "https://instagram.com/zzu_ni", "followers": "136K", "category": "육아/라이프"}}, {"uid": "4117a1014155", "title": "[공구] 이케아 SUNDVIK 유아 침대 + 매트리스", "link": "https://instagram.com/likejinseo", "description": "제시맘이(가) 진행하는 이케아 이케아 SUNDVIK 유아 침대 + 매트리스 공동구매. 공구가 139,000원 (30% 할인)", "date": "2026-04-03", "gonggu_info": {"is_gonggu": true, "product_name": "이케아 SUNDVIK 유아 침대 + 매트리스", "brand": "이케아", "price": "139,000원", "original_price": "199,000원", "discount": "30%", "period": "04/09", "status": "진행중", "keywords_found": ["공구", "공동구매", "특가"]}, "category": "가구/인테리어", "influencer": {"id": 3, "name": "제시맘", "handle": "likejinseo", "platform": "instagram", "url": "https://instagram.com/likejinseo", "followers": "80K", "category": "육아"}}, {"uid": "cd62c9a87ce8", "title": "[공구] 하기스 네이처메이드 기저귀 팬티형 L 4팩", "link": "https://instagram.com/ily__diary", "description": "일리맘이(가) 진행하는 하기스 하기스 네이처메이드 기저귀 팬티형 L 4팩 공동구매. 공구가 47,900원 (30% 할인)", "date": "2026-04-03", "gonggu_info": {"is_gonggu": true, "product_name": "하기스 네이처메이드 기저귀 팬티형 L 4팩", "brand": "하기스", "price": "47,900원", "original_price": "68,000원", "discount": "30%", "period": "04/10", "status": "진행중", "keywords_found": ["공구", "공동구매", "특가"]}, "category": "기저귀/위생", "influencer": {"id": 4, "name": "일리맘", "handle": "ily__diary", "platform": "instagram", "url": "https://instagram.com/ily__diary", "followers": "70K", "category": "육아/일상"}}, {"uid": "bbe7380ac11c", "title": "[공구] 수오미 코세척기 + 식염수 3개월분", "link": "https://instagram.com/may__miin", "description": "메이민맘이(가) 진행하는 수오미 수오미 코세척기 + 식염수 3개월분 공동구매. 공구가 28,500원 (32% 할인)", "date": "2026-04-03", "gonggu_info": {"is_gonggu": true, "product_name": "수오미 코세척기 + 식염수 3개월분", "brand": "수오미", "price": "28,500원", "original_price": "42,000원", "discount": "32%", "period": "04/09", "status": "진행중", "keywords_found": ["공구", "공동구매", "특가"]}, "category": "기저귀/위생", "influencer": {"id": 7, "name": "메이민맘", "handle": "may__miin", "platform": "instagram", "url": "https://instagram.com/may__miin", "followers": "65K", "category": "키즈/육아"}}, {"uid": "1edaf9a10676", "title": "[공구] BDZ 아동 사계절 내의 5종 세트 (90-130)", "link": "https://instagram.com/may__miin", "description": "메이민맘이(가) 진행하는 블루독 BDZ 아동 사계절 내의 5종 세트 (90-130) 공동구매. 공구가 38,900원 (33% 할인)", "date": "2026-04-03", "gonggu_info": {"is_gonggu": true, "product_name": "BDZ 아동 사계절 내의 5종 세트 (90-130)", "brand": "블루독", "price": "38,900원", "original_price": "58,000원", "discount": "33%", "period": "04/06", "status": "마감임박", "keywords_found": ["공구", "공동구매", "특가"]}, "category": "의류/패션", "influencer": {"id": 7, "name": "메이민맘", "handle": "may__miin", "platform": "instagram", "url": "https://instagram.com/may__miin", "followers": "65K", "category": "키즈/육아"}}, {"uid": "8890932ca49d", "title": "[공구] 엘빈즈 아기밥솥 이유식 메이커", "link": "https://instagram.com/honey_momlog", "description": "꿀단지맘이(가) 진행하는 엘빈즈 엘빈즈 아기밥솥 이유식 메이커 공동구매. 공구가 64,900원 (34% 할인)", "date": "2026-04-03", "gonggu_info": {"is_gonggu": true, "product_name": "엘빈즈 아기밥솥 이유식 메이커", "brand": "엘빈즈", "price": "64,900원", "original_price": "99,000원", "discount": "34%", "period": "04/04", "status": "오늘마감", "keywords_found": ["공구", "공동구매", "특가"]}, "category": "이유식/식품", "influencer": {"id": 8, "name": "꿀단지맘", "handle": "honey_momlog", "platform": "instagram", "url": "https://instagram.com/honey_momlog", "followers": "58K", "category": "육아/공구"}}, {"uid": "ab87ba8697e8", "title": "[공구] 보솜이 프리미엄 기저귀 점보팩 M", "link": "https://instagram.com/honey_momlog", "description": "꿀단지맘이(가) 진행하는 보솜이 보솜이 프리미엄 기저귀 점보팩 M 공동구매. 공구가 26,900원 (29% 할인)", "date": "2026-04-03", "gonggu_info": {"is_gonggu": true, "product_name": "보솜이 프리미엄 기저귀 점보팩 M", "brand": "보솜이", "price": "26,900원", "original_price": "38,000원", "discount": "29%", "period": "04/07", "status": "진행중", "keywords_found": ["공구", "공동구매", "특가"]}, "category": "기저귀/위생", "influencer": {"id": 8, "name": "꿀단지맘", "handle": "honey_momlog", "platform": "instagram", "url": "https://instagram.com/honey_momlog", "followers": "58K", "category": "육아/공구"}}, {"uid": "3815486c0e03", "title": "[공구] 코지 다목적 힙시트 캐리어", "link": "https://instagram.com/daldal_home", "description": "달달이네이(가) 진행하는 코지 코지 다목적 힙시트 캐리어 공동구매. 공구가 79,000원 (34% 할인)", "date": "2026-04-03", "gonggu_info": {"is_gonggu": true, "product_name": "코지 다목적 힙시트 캐리어", "brand": "코지", "price": "79,000원", "original_price": "119,000원", "discount": "34%", "period": "04/10", "status": "진행중", "keywords_found": ["공구", "공동구매", "특가"]}, "category": "외출용품", "influencer": {"id": 9, "name": "달달이네", "handle": "daldal_home", "platform": "instagram", "url": "https://instagram.com/daldal_home", "followers": "52K", "category": "육아/인테리어"}}, {"uid": "15f35e4da9aa", "title": "[공구] 분유 NAN 3단계 800g×2캔 세트", "link": "https://instagram.com/moms_closet_kr", "description": "맘스클로젯이(가) 진행하는 네슬레 분유 NAN 3단계 800g×2캔 세트 공동구매. 공구가 58,000원 (29% 할인)", "date": "2026-04-03", "gonggu_info": {"is_gonggu": true, "product_name": "분유 NAN 3단계 800g×2캔 세트", "brand": "네슬레", "price": "58,000원", "original_price": "82,000원", "discount": "29%", "period": "04/05", "status": "마감임박", "keywords_found": ["공구", "공동구매", "특가"]}, "category": "이유식/식품", "influencer": {"id": 11, "name": "맘스클로젯", "handle": "moms_closet_kr", "platform": "instagram", "url": "https://instagram.com/moms_closet_kr", "followers": "45K", "category": "키즈패션"}}, {"uid": "15eaeda81a50", "title": "[공구] 수오미 코세척기 + 식염수 3개월분", "link": "https://instagram.com/bom_gonggu", "description": "봄이네공구이(가) 진행하는 수오미 수오미 코세척기 + 식염수 3개월분 공동구매. 공구가 28,500원 (32% 할인)", "date": "2026-04-03", "gonggu_info": {"is_gonggu": true, "product_name": "수오미 코세척기 + 식염수 3개월분", "brand": "수오미", "price": "28,500원", "original_price": "42,000원", "discount": "32%", "period": "04/06", "status": "마감임박", "keywords_found": ["공구", "공동구매", "특가"]}, "category": "기저귀/위생", "influencer": {"id": 12, "name": "봄이네공구", "handle": "bom_gonggu", "platform": "instagram", "url": "https://instagram.com/bom_gonggu", "followers": "42K", "category": "공구전문"}}, {"uid": "52fcfc7f45e9", "title": "[공구] 닥터노 베이비 선크림 SPF50+ PA++++ 50ml×3", "link": "https://instagram.com/chorong_mama_", "description": "초롱맘이(가) 진행하는 닥터노 닥터노 베이비 선크림 SPF50+ PA++++ 50ml×3 공동구매. 공구가 28,500원 (32% 할인)", "date": "2026-04-03", "gonggu_info": {"is_gonggu": true, "product_name": "닥터노 베이비 선크림 SPF50+ PA++++ 50ml×3", "brand": "닥터노", "price": "28,500원", "original_price": "42,000원", "discount": "32%", "period": "04/10", "status": "진행중", "keywords_found": ["공구", "공동구매", "특가"]}, "category": "스킨케어", "influencer": {"id": 13, "name": "초롱맘", "handle": "chorong_mama_", "platform": "instagram", "url": "https://instagram.com/chorong_mama_", "followers": "39K", "category": "육아"}}, {"uid": "ea929d59416e", "title": "[공구] 하기스 네이처메이드 기저귀 팬티형 L 4팩", "link": "https://instagram.com/rumi_mom_daily", "description": "루미맘이(가) 진행하는 하기스 하기스 네이처메이드 기저귀 팬티형 L 4팩 공동구매. 공구가 47,900원 (30% 할인)", "date": "2026-04-03", "gonggu_info": {"is_gonggu": true, "product_name": "하기스 네이처메이드 기저귀 팬티형 L 4팩", "brand": "하기스", "price": "47,900원", "original_price": "68,000원", "discount": "30%", "period": "04/09", "status": "진행중", "keywords_found": ["공구", "공동구매", "특가"]}, "category": "기저귀/위생", "influencer": {"id": 15, "name": "루미맘", "handle": "rumi_mom_daily", "platform": "instagram", "url": "https://instagram.com/rumi_mom_daily", "followers": "33K", "category": "육아"}}, {"uid": "3c04d7b7ec1e", "title": "[공구] 말랑 촉감 공 12종 세트", "link": "https://instagram.com/rumi_mom_daily", "description": "루미맘이(가) 진행하는 사이언픽 말랑 촉감 공 12종 세트 공동구매. 공구가 19,900원 (33% 할인)", "date": "2026-04-03", "gonggu_info": {"is_gonggu": true, "product_name": "말랑 촉감 공 12종 세트", "brand": "사이언픽", "price": "19,900원", "original_price": "29,800원", "discount": "33%", "period": "04/12", "status": "오픈예정", "keywords_found": ["공구", "공동구매", "특가"]}, "category": "장난감/교구", "influencer": {"id": 15, "name": "루미맘", "handle": "rumi_mom_daily", "platform": "instagram", "url": "https://instagram.com/rumi_mom_daily", "followers": "33K", "category": "육아"}}, {"uid": "55b7eb659bfc", "title": "[공구] 보솜이 프리미엄 기저귀 점보팩 M", "link": "https://instagram.com/rumi_mom_daily", "description": "루미맘이(가) 진행하는 보솜이 보솜이 프리미엄 기저귀 점보팩 M 공동구매. 공구가 26,900원 (29% 할인)", "date": "2026-04-03", "gonggu_info": {"is_gonggu": true, "product_name": "보솜이 프리미엄 기저귀 점보팩 M", "brand": "보솜이", "price": "26,900원", "original_price": "38,000원", "discount": "29%", "period": "04/10", "status": "진행중", "keywords_found": ["공구", "공동구매", "특가"]}, "category": "기저귀/위생", "influencer": {"id": 15, "name": "루미맘", "handle": "rumi_mom_daily", "platform": "instagram", "url": "https://instagram.com/rumi_mom_daily", "followers": "33K", "category": "육아"}}, {"uid": "a0bedba60904", "title": "[공구] 피죤 모유실감 젖병 160ml+280ml 세트", "link": "https://blog.naver.com/save_mom_life", "description": "알뜰살뜰맘이(가) 진행하는 피죤 피죤 모유실감 젖병 160ml+280ml 세트 공동구매. 공구가 26,900원 (29% 할인)", "date": "2026-04-03", "gonggu_info": {"is_gonggu": true, "product_name": "피죤 모유실감 젖병 160ml+280ml 세트", "brand": "피죤", "price": "26,900원", "original_price": "38,000원", "discount": "29%", "period": "04/04", "status": "오늘마감", "keywords_found": ["공구", "공동구매", "특가"]}, "category": "수유/젖병", "influencer": {"id": 17, "name": "알뜰살뜰맘", "handle": "save_mom_life", "platform": "naver_blog", "url": "https://blog.naver.com/save_mom_life", "followers": "일방문 6천+", "category": "육아/절약"}}, {"uid": "2e23ac4dfc02", "title": "[공구] 필립스 아벤트 SCF 전동 유축기", "link": "https://blog.naver.com/green_baby_log", "description": "초록이네육아이(가) 진행하는 아벤트 필립스 아벤트 SCF 전동 유축기 공동구매. 공구가 129,000원 (35% 할인)", "date": "2026-04-03", "gonggu_info": {"is_gonggu": true, "product_name": "필립스 아벤트 SCF 전동 유축기", "brand": "아벤트", "price": "129,000원", "original_price": "198,000원", "discount": "35%", "period": "04/12", "status": "오픈예정", "keywords_found": ["공구", "공동구매", "특가"]}, "category": "수유/젖병", "influencer": {"id": 18, "name": "초록이네육아", "handle": "green_baby_log", "platform": "naver_blog", "url": "https://blog.naver.com/green_baby_log", "followers": "일방문 5천+", "category": "육아"}}, {"uid": "690f476030c3", "title": "[공구] 미미월드 보온 젖병 가방+쿨러팩 세트", "link": "https://blog.naver.com/sonagi_mama_kr", "description": "소나기맘이(가) 진행하는 미미월드 미미월드 보온 젖병 가방+쿨러팩 세트 공동구매. 공구가 15,900원 (28% 할인)", "date": "2026-04-03", "gonggu_info": {"is_gonggu": true, "product_name": "미미월드 보온 젖병 가방+쿨러팩 세트", "brand": "미미월드", "price": "15,900원", "original_price": "22,000원", "discount": "28%", "period": "04/04", "status": "오늘마감", "keywords_found": ["공구", "공동구매", "특가"]}, "category": "수유/젖병", "influencer": {"id": 19, "name": "소나기맘", "handle": "sonagi_mama_kr", "platform": "naver_blog", "url": "https://blog.naver.com/sonagi_mama_kr", "followers": "일방문 5천+", "category": "육아/리뷰"}}, {"uid": "5aaacd30f018", "title": "[공구] 함소아 유기농 쌀과자 3박스", "link": "https://blog.naver.com/sonagi_mama_kr", "description": "소나기맘이(가) 진행하는 함소아 함소아 유기농 쌀과자 3박스 공동구매. 공구가 15,900원 (34% 할인)", "date": "2026-04-03", "gonggu_info": {"is_gonggu": true, "product_name": "함소아 유기농 쌀과자 3박스", "brand": "함소아", "price": "15,900원", "original_price": "24,000원", "discount": "34%", "period": "04/09", "status": "진행중", "keywords_found": ["공구", "공동구매", "특가"]}, "category": "이유식/식품", "influencer": {"id": 19, "name": "소나기맘", "handle": "sonagi_mama_kr", "platform": "naver_blog", "url": "https://blog.naver.com/sonagi_mama_kr", "followers": "일방문 5천+", "category": "육아/리뷰"}}, {"uid": "f9c473233ca6", "title": "[공구] 압착 과일즙 사과+배 혼합 30팩", "link": "https://instagram.com/unidongdong", "description": "우니동동이(가) 진행하는 아이배냇 압착 과일즙 사과+배 혼합 30팩 공동구매. 공구가 24,900원 (31% 할인)", "date": "2026-04-02", "gonggu_info": {"is_gonggu": true, "product_name": "압착 과일즙 사과+배 혼합 30팩", "brand": "아이배냇", "price": "24,900원", "original_price": "36,000원", "discount": "31%", "period": "04/12", "status": "오픈예정", "keywords_found": ["공구", "공동구매", "특가"]}, "category": "이유식/식품", "influencer": {"id": 1, "name": "우니동동", "handle": "unidongdong", "platform": "instagram", "url": "https://instagram.com/unidongdong", "followers": "239K", "category": "육아/재테크"}}, {"uid": "b89f650e63a4", "title": "[공구] 필립스 아벤트 SCF 전동 유축기", "link": "https://instagram.com/unidongdong", "description": "우니동동이(가) 진행하는 아벤트 필립스 아벤트 SCF 전동 유축기 공동구매. 공구가 129,000원 (35% 할인)", "date": "2026-04-02", "gonggu_info": {"is_gonggu": true, "product_name": "필립스 아벤트 SCF 전동 유축기", "brand": "아벤트", "price": "129,000원", "original_price": "198,000원", "discount": "35%", "period": "04/04", "status": "오늘마감", "keywords_found": ["공구", "공동구매", "특가"]}, "category": "수유/젖병", "influencer": {"id": 1, "name": "우니동동", "handle": "unidongdong", "platform": "instagram", "url": "https://instagram.com/unidongdong", "followers": "239K", "category": "육아/재테크"}}, {"uid": "1863bed56cb5", "title": "[공구] 유풍 퍼즐 놀이매트 두께4cm 200×140", "link": "https://instagram.com/zzu_ni", "description": "소을맘이(가) 진행하는 유풍 유풍 퍼즐 놀이매트 두께4cm 200×140 공동구매. 공구가 52,900원 (33% 할인)", "date": "2026-04-02", "gonggu_info": {"is_gonggu": true, "product_name": "유풍 퍼즐 놀이매트 두께4cm 200×140", "brand": "유풍", "price": "52,900원", "original_price": "79,000원", "discount": "33%", "period": "04/12", "status": "오픈예정", "keywords_found": ["공구", "공동구매", "특가"]}, "category": "가구/인테리어", "influencer": {"id": 2, "name": "소을맘", "handle": "zzu_ni", "platform": "instagram", "url": "https://instagram.com/zzu_ni", "followers": "136K", "category": "육아/라이프"}}, {"uid": "f89ae5ec625e", "title": "[공구] 한글이 야호 시즌2 전집 30권+DVD", "link": "https://instagram.com/likejinseo", "description": "제시맘이(가) 진행하는 EBS미디어 한글이 야호 시즌2 전집 30권+DVD 공동구매. 공구가 79,000원 (39% 할인)", "date": "2026-04-02", "gonggu_info": {"is_gonggu": true, "product_name": "한글이 야호 시즌2 전집 30권+DVD", "brand": "EBS미디어", "price": "79,000원", "original_price": "129,000원", "discount": "39%", "period": "04/06", "status": "마감임박", "keywords_found": ["공구", "공동구매", "특가"]}, "category": "교육/도서", "influencer": {"id": 3, "name": "제시맘", "handle": "likejinseo", "platform": "instagram", "url": "https://instagram.com/likejinseo", "followers": "80K", "category": "육아"}}, {"uid": "8ff11e762633", "title": "[공구] 조이 라이더 카시트 신생아~18kg", "link": "https://instagram.com/likejinseo", "description": "제시맘이(가) 진행하는 조이 조이 라이더 카시트 신생아~18kg 공동구매. 공구가 189,000원 (35% 할인)", "date": "2026-04-02", "gonggu_info": {"is_gonggu": true, "product_name": "조이 라이더 카시트 신생아~18kg", "brand": "조이", "price": "189,000원", "original_price": "289,000원", "discount": "35%", "period": "04/09", "status": "진행중", "keywords_found": ["공구", "공동구매", "특가"]}, "category": "외출용품", "influencer": {"id": 3, "name": "제시맘", "handle": "likejinseo", "platform": "instagram", "url": "https://instagram.com/likejinseo", "followers": "80K", "category": "육아"}}, {"uid": "b63d8429e9e3", "title": "[공구] 로가디스 남아 봄 바람막이 점퍼", "link": "https://instagram.com/likejinseo", "description": "제시맘이(가) 진행하는 로가디스 로가디스 남아 봄 바람막이 점퍼 공동구매. 공구가 42,000원 (35% 할인)", "date": "2026-04-02", "gonggu_info": {"is_gonggu": true, "product_name": "로가디스 남아 봄 바람막이 점퍼", "brand": "로가디스", "price": "42,000원", "original_price": "65,000원", "discount": "35%", "period": "04/07", "status": "진행중", "keywords_found": ["공구", "공동구매", "특가"]}, "category": "의류/패션", "influencer": {"id": 3, "name": "제시맘", "handle": "likejinseo", "platform": "instagram", "url": "https://instagram.com/likejinseo", "followers": "80K", "category": "육아"}}, {"uid": "b220ec2e8691", "title": "[공구] BDZ 아동 사계절 내의 5종 세트 (90-130)", "link": "https://instagram.com/ily__diary", "description": "일리맘이(가) 진행하는 블루독 BDZ 아동 사계절 내의 5종 세트 (90-130) 공동구매. 공구가 38,900원 (33% 할인)", "date": "2026-04-02", "gonggu_info": {"is_gonggu": true, "product_name": "BDZ 아동 사계절 내의 5종 세트 (90-130)", "brand": "블루독", "price": "38,900원", "original_price": "58,000원", "discount": "33%", "period": "04/10", "status": "진행중", "keywords_found": ["공구", "공동구매", "특가"]}, "category": "의류/패션", "influencer": {"id": 4, "name": "일리맘", "handle": "ily__diary", "platform": "instagram", "url": "https://instagram.com/ily__diary", "followers": "70K", "category": "육아/일상"}}, {"uid": "fb769d1f6a7a", "title": "[공구] 안전문 계단/문 울타리 철제형 140cm", "link": "https://instagram.com/showme_09", "description": "showme공구이(가) 진행하는 베이비세이프 안전문 계단/문 울타리 철제형 140cm 공동구매. 공구가 45,900원 (32% 할인)", "date": "2026-04-02", "gonggu_info": {"is_gonggu": true, "product_name": "안전문 계단/문 울타리 철제형 140cm", "brand": "베이비세이프", "price": "45,900원", "original_price": "68,000원", "discount": "32%", "period": "04/12", "status": "오픈예정", "keywords_found": ["공구", "공동구매", "특가"]}, "category": "가구/인테리어", "influencer": {"id": 5, "name": "showme공구", "handle": "showme_09", "platform": "instagram", "url": "https://instagram.com/showme_09", "followers": "65K", "category": "공구전문"}}, {"uid": "36adce4826ce", "title": "[공구] 안전문 계단/문 울타리 철제형 140cm", "link": "https://instagram.com/daldal_home", "description": "달달이네이(가) 진행하는 베이비세이프 안전문 계단/문 울타리 철제형 140cm 공동구매. 공구가 45,900원 (32% 할인)", "date": "2026-04-02", "gonggu_info": {"is_gonggu": true, "product_name": "안전문 계단/문 울타리 철제형 140cm", "brand": "베이비세이프", "price": "45,900원", "original_price": "68,000원", "discount": "32%", "period": "04/10", "status": "진행중", "keywords_found": ["공구", "공동구매", "특가"]}, "category": "가구/인테리어", "influencer": {"id": 9, "name": "달달이네", "handle": "daldal_home", "platform": "instagram", "url": "https://instagram.com/daldal_home", "followers": "52K", "category": "육아/인테리어"}}, {"uid": "03898f803d3e", "title": "[공구] 뽀로로 영어 전집 20권 + 오디오펜", "link": "https://instagram.com/daldal_home", "description": "달달이네이(가) 진행하는 아이코닉스 뽀로로 영어 전집 20권 + 오디오펜 공동구매. 공구가 89,000원 (36% 할인)", "date": "2026-04-02", "gonggu_info": {"is_gonggu": true, "product_name": "뽀로로 영어 전집 20권 + 오디오펜", "brand": "아이코닉스", "price": "89,000원", "original_price": "138,000원", "discount": "36%", "period": "04/08", "status": "진행중", "keywords_found": ["공구", "공동구매", "특가"]}, "category": "교육/도서", "influencer": {"id": 9, "name": "달달이네", "handle": "daldal_home", "platform": "instagram", "url": "https://instagram.com/daldal_home", "followers": "52K", "category": "육아/인테리어"}}, {"uid": "d9402d97889f", "title": "[공구] 미미월드 보온 젖병 가방+쿨러팩 세트", "link": "https://instagram.com/dodam_momlife", "description": "도담맘이(가) 진행하는 미미월드 미미월드 보온 젖병 가방+쿨러팩 세트 공동구매. 공구가 15,900원 (28% 할인)", "date": "2026-04-02", "gonggu_info": {"is_gonggu": true, "product_name": "미미월드 보온 젖병 가방+쿨러팩 세트", "brand": "미미월드", "price": "15,900원", "original_price": "22,000원", "discount": "28%", "period": "04/07", "status": "진행중", "keywords_found": ["공구", "공동구매", "특가"]}, "category": "수유/젖병", "influencer": {"id": 10, "name": "도담맘", "handle": "dodam_momlife", "platform": "instagram", "url": "https://instagram.com/dodam_momlife", "followers": "48K", "category": "육아"}}, {"uid": "3ac59f5e8b31", "title": "[공구] 핫팩 보온 속싸개 + 겉싸개 세트", "link": "https://instagram.com/dodam_momlife", "description": "도담맘이(가) 진행하는 아가방 핫팩 보온 속싸개 + 겉싸개 세트 공동구매. 공구가 29,900원 (32% 할인)", "date": "2026-04-02", "gonggu_info": {"is_gonggu": true, "product_name": "핫팩 보온 속싸개 + 겉싸개 세트", "brand": "아가방", "price": "29,900원", "original_price": "44,000원", "discount": "32%", "period": "04/05", "status": "마감임박", "keywords_found": ["공구", "공동구매", "특가"]}, "category": "가구/인테리어", "influencer": {"id": 10, "name": "도담맘", "handle": "dodam_momlife", "platform": "instagram", "url": "https://instagram.com/dodam_momlife", "followers": "48K", "category": "육아"}}, {"uid": "63636320791e", "title": "[공구] 닥터노 베이비 선크림 SPF50+ PA++++ 50ml×3", "link": "https://instagram.com/moms_closet_kr", "description": "맘스클로젯이(가) 진행하는 닥터노 닥터노 베이비 선크림 SPF50+ PA++++ 50ml×3 공동구매. 공구가 28,500원 (32% 할인)", "date": "2026-04-02", "gonggu_info": {"is_gonggu": true, "product_name": "닥터노 베이비 선크림 SPF50+ PA++++ 50ml×3", "brand": "닥터노", "price": "28,500원", "original_price": "42,000원", "discount": "32%", "period": "04/07", "status": "진행중", "keywords_found": ["공구", "공동구매", "특가"]}, "category": "스킨케어", "influencer": {"id": 11, "name": "맘스클로젯", "handle": "moms_closet_kr", "platform": "instagram", "url": "https://instagram.com/moms_closet_kr", "followers": "45K", "category": "키즈패션"}}, {"uid": "73b1fc8d7f88", "title": "[공구] 피부장벽 아기 에센스 100ml+보습크림 세트", "link": "https://instagram.com/moms_closet_kr", "description": "맘스클로젯이(가) 진행하는 위드맘 피부장벽 아기 에센스 100ml+보습크림 세트 공동구매. 공구가 18,900원 (32% 할인)", "date": "2026-04-02", "gonggu_info": {"is_gonggu": true, "product_name": "피부장벽 아기 에센스 100ml+보습크림 세트", "brand": "위드맘", "price": "18,900원", "original_price": "28,000원", "discount": "32%", "period": "04/08", "status": "진행중", "keywords_found": ["공구", "공동구매", "특가"]}, "category": "스킨케어", "influencer": {"id": 11, "name": "맘스클로젯", "handle": "moms_closet_kr", "platform": "instagram", "url": "https://instagram.com/moms_closet_kr", "followers": "45K", "category": "키즈패션"}}, {"uid": "3e03329329c6", "title": "[공구] 피부장벽 아기 에센스 100ml+보습크림 세트", "link": "https://instagram.com/bom_gonggu", "description": "봄이네공구이(가) 진행하는 위드맘 피부장벽 아기 에센스 100ml+보습크림 세트 공동구매. 공구가 18,900원 (32% 할인)", "date": "2026-04-02", "gonggu_info": {"is_gonggu": true, "product_name": "피부장벽 아기 에센스 100ml+보습크림 세트", "brand": "위드맘", "price": "18,900원", "original_price": "28,000원", "discount": "32%", "period": "04/05", "status": "마감임박", "keywords_found": ["공구", "공동구매", "특가"]}, "category": "스킨케어", "influencer": {"id": 12, "name": "봄이네공구", "handle": "bom_gonggu", "platform": "instagram", "url": "https://instagram.com/bom_gonggu", "followers": "42K", "category": "공구전문"}}, {"uid": "b1808d62cd32", "title": "[공구] 말랑 촉감 공 12종 세트", "link": "https://instagram.com/bom_gonggu", "description": "봄이네공구이(가) 진행하는 사이언픽 말랑 촉감 공 12종 세트 공동구매. 공구가 19,900원 (33% 할인)", "date": "2026-04-02", "gonggu_info": {"is_gonggu": true, "product_name": "말랑 촉감 공 12종 세트", "brand": "사이언픽", "price": "19,900원", "original_price": "29,800원", "discount": "33%", "period": "04/05", "status": "마감임박", "keywords_found": ["공구", "공동구매", "특가"]}, "category": "장난감/교구", "influencer": {"id": 12, "name": "봄이네공구", "handle": "bom_gonggu", "platform": "instagram", "url": "https://instagram.com/bom_gonggu", "followers": "42K", "category": "공구전문"}}, {"uid": "1b7c42640bd8", "title": "[공구] 아토팜 리얼 베리어 크림 80g×3+토너 150ml", "link": "https://instagram.com/hayoon_mama_log", "description": "하윤맘이(가) 진행하는 아토팜 아토팜 리얼 베리어 크림 80g×3+토너 150ml 공동구매. 공구가 39,900원 (33% 할인)", "date": "2026-04-02", "gonggu_info": {"is_gonggu": true, "product_name": "아토팜 리얼 베리어 크림 80g×3+토너 150ml", "brand": "아토팜", "price": "39,900원", "original_price": "59,800원", "discount": "33%", "period": "04/06", "status": "마감임박", "keywords_found": ["공구", "공동구매", "특가"]}, "category": "스킨케어", "influencer": {"id": 14, "name": "하윤맘", "handle": "hayoon_mama_log", "platform": "instagram", "url": "https://instagram.com/hayoon_mama_log", "followers": "36K", "category": "육아/교육"}}, {"uid": "1f0f4e1cdf36", "title": "[공구] 마미포코 팬티기저귀 XL 2팩+물티슈 10팩", "link": "https://instagram.com/rumi_mom_daily", "description": "루미맘이(가) 진행하는 마미포코 마미포코 팬티기저귀 XL 2팩+물티슈 10팩 공동구매. 공구가 35,500원 (34% 할인)", "date": "2026-04-02", "gonggu_info": {"is_gonggu": true, "product_name": "마미포코 팬티기저귀 XL 2팩+물티슈 10팩", "brand": "마미포코", "price": "35,500원", "original_price": "54,000원", "discount": "34%", "period": "04/10", "status": "진행중", "keywords_found": ["공구", "공동구매", "특가"]}, "category": "기저귀/위생", "influencer": {"id": 15, "name": "루미맘", "handle": "rumi_mom_daily", "platform": "instagram", "url": "https://instagram.com/rumi_mom_daily", "followers": "33K", "category": "육아"}}, {"uid": "997fd9faf559", "title": "[공구] 코지 다목적 힙시트 캐리어", "link": "https://blog.naver.com/honey_ug_log", "description": "꿀육아로그이(가) 진행하는 코지 코지 다목적 힙시트 캐리어 공동구매. 공구가 79,000원 (34% 할인)", "date": "2026-04-02", "gonggu_info": {"is_gonggu": true, "product_name": "코지 다목적 힙시트 캐리어", "brand": "코지", "price": "79,000원", "original_price": "119,000원", "discount": "34%", "period": "04/07", "status": "진행중", "keywords_found": ["공구", "공동구매", "특가"]}, "category": "외출용품", "influencer": {"id": 16, "name": "꿀육아로그", "handle": "honey_ug_log", "platform": "naver_blog", "url": "https://blog.naver.com/honey_ug_log", "followers": "일방문 8천+", "category": "육아/공구"}}, {"uid": "4d1016920dbd", "title": "[공구] 로가디스 남아 봄 바람막이 점퍼", "link": "https://blog.naver.com/save_mom_life", "description": "알뜰살뜰맘이(가) 진행하는 로가디스 로가디스 남아 봄 바람막이 점퍼 공동구매. 공구가 42,000원 (35% 할인)", "date": "2026-04-02", "gonggu_info": {"is_gonggu": true, "product_name": "로가디스 남아 봄 바람막이 점퍼", "brand": "로가디스", "price": "42,000원", "original_price": "65,000원", "discount": "35%", "period": "04/06", "status": "마감임박", "keywords_found": ["공구", "공동구매", "특가"]}, "category": "의류/패션", "influencer": {"id": 17, "name": "알뜰살뜰맘", "handle": "save_mom_life", "platform": "naver_blog", "url": "https://blog.naver.com/save_mom_life", "followers": "일방문 6천+", "category": "육아/절약"}}, {"uid": "6ff58b5c9e92", "title": "[공구] 에르고베이비 옴니360 쿨에어 아기띠", "link": "https://blog.naver.com/haru_one_mom", "description": "하루하나육아이(가) 진행하는 에르고베이비 에르고베이비 옴니360 쿨에어 아기띠 공동구매. 공구가 168,000원 (35% 할인)", "date": "2026-04-02", "gonggu_info": {"is_gonggu": true, "product_name": "에르고베이비 옴니360 쿨에어 아기띠", "brand": "에르고베이비", "price": "168,000원", "original_price": "258,000원", "discount": "35%", "period": "04/06", "status": "마감임박", "keywords_found": ["공구", "공동구매", "특가"]}, "category": "외출용품", "influencer": {"id": 20, "name": "하루하나육아", "handle": "haru_one_mom", "platform": "naver_blog", "url": "https://blog.naver.com/haru_one_mom", "followers": "일방문 4천+", "category": "육아"}}, {"uid": "17a0959bb586", "title": "[공구] 코지 다목적 힙시트 캐리어", "link": "https://blog.naver.com/haru_one_mom", "description": "하루하나육아이(가) 진행하는 코지 코지 다목적 힙시트 캐리어 공동구매. 공구가 79,000원 (34% 할인)", "date": "2026-04-02", "gonggu_info": {"is_gonggu": true, "product_name": "코지 다목적 힙시트 캐리어", "brand": "코지", "price": "79,000원", "original_price": "119,000원", "discount": "34%", "period": "04/07", "status": "진행중", "keywords_found": ["공구", "공동구매", "특가"]}, "category": "외출용품", "influencer": {"id": 20, "name": "하루하나육아", "handle": "haru_one_mom", "platform": "naver_blog", "url": "https://blog.naver.com/haru_one_mom", "followers": "일방문 4천+", "category": "육아"}}, {"uid": "86df8bc0e3e0", "title": "[공구] 필립스 아벤트 SCF 전동 유축기", "link": "https://instagram.com/zzu_ni", "description": "소을맘이(가) 진행하는 아벤트 필립스 아벤트 SCF 전동 유축기 공동구매. 공구가 129,000원 (35% 할인)", "date": "2026-04-01", "gonggu_info": {"is_gonggu": true, "product_name": "필립스 아벤트 SCF 전동 유축기", "brand": "아벤트", "price": "129,000원", "original_price": "198,000원", "discount": "35%", "period": "04/04", "status": "오늘마감", "keywords_found": ["공구", "공동구매", "특가"]}, "category": "수유/젖병", "influencer": {"id": 2, "name": "소을맘", "handle": "zzu_ni", "platform": "instagram", "url": "https://instagram.com/zzu_ni", "followers": "136K", "category": "육아/라이프"}}, {"uid": "10b1e68bf826", "title": "[공구] 수오미 코세척기 + 식염수 3개월분", "link": "https://instagram.com/likejinseo", "description": "제시맘이(가) 진행하는 수오미 수오미 코세척기 + 식염수 3개월분 공동구매. 공구가 28,500원 (32% 할인)", "date": "2026-04-01", "gonggu_info": {"is_gonggu": true, "product_name": "수오미 코세척기 + 식염수 3개월분", "brand": "수오미", "price": "28,500원", "original_price": "42,000원", "discount": "32%", "period": "04/10", "status": "진행중", "keywords_found": ["공구", "공동구매", "특가"]}, "category": "기저귀/위생", "influencer": {"id": 3, "name": "제시맘", "handle": "likejinseo", "platform": "instagram", "url": "https://instagram.com/likejinseo", "followers": "80K", "category": "육아"}}, {"uid": "8ddbc8f7c8d2", "title": "[공구] 안전문 계단/문 울타리 철제형 140cm", "link": "https://instagram.com/ily__diary", "description": "일리맘이(가) 진행하는 베이비세이프 안전문 계단/문 울타리 철제형 140cm 공동구매. 공구가 45,900원 (32% 할인)", "date": "2026-04-01", "gonggu_info": {"is_gonggu": true, "product_name": "안전문 계단/문 울타리 철제형 140cm", "brand": "베이비세이프", "price": "45,900원", "original_price": "68,000원", "discount": "32%", "period": "04/10", "status": "진행중", "keywords_found": ["공구", "공동구매", "특가"]}, "category": "가구/인테리어", "influencer": {"id": 4, "name": "일리맘", "handle": "ily__diary", "platform": "instagram", "url": "https://instagram.com/ily__diary", "followers": "70K", "category": "육아/일상"}}, {"uid": "890100e4651a", "title": "[공구] 아이챌린지 B단계 (2세) 4개월 구독", "link": "https://instagram.com/ily__diary", "description": "일리맘이(가) 진행하는 샘토이 아이챌린지 B단계 (2세) 4개월 구독 공동구매. 공구가 68,000원 (31% 할인)", "date": "2026-04-01", "gonggu_info": {"is_gonggu": true, "product_name": "아이챌린지 B단계 (2세) 4개월 구독", "brand": "샘토이", "price": "68,000원", "original_price": "98,000원", "discount": "31%", "period": "04/10", "status": "진행중", "keywords_found": ["공구", "공동구매", "특가"]}, "category": "교육/도서", "influencer": {"id": 4, "name": "일리맘", "handle": "ily__diary", "platform": "instagram", "url": "https://instagram.com/ily__diary", "followers": "70K", "category": "육아/일상"}}, {"uid": "abd380d1826f", "title": "[공구] 에르고베이비 옴니360 쿨에어 아기띠", "link": "https://instagram.com/showme_09", "description": "showme공구이(가) 진행하는 에르고베이비 에르고베이비 옴니360 쿨에어 아기띠 공동구매. 공구가 168,000원 (35% 할인)", "date": "2026-04-01", "gonggu_info": {"is_gonggu": true, "product_name": "에르고베이비 옴니360 쿨에어 아기띠", "brand": "에르고베이비", "price": "168,000원", "original_price": "258,000원", "discount": "35%", "period": "04/07", "status": "진행중", "keywords_found": ["공구", "공동구매", "특가"]}, "category": "외출용품", "influencer": {"id": 5, "name": "showme공구", "handle": "showme_09", "platform": "instagram", "url": "https://instagram.com/showme_09", "followers": "65K", "category": "공구전문"}}, {"uid": "14aef509e438", "title": "[공구] 마미포코 팬티기저귀 XL 2팩+물티슈 10팩", "link": "https://instagram.com/peach0724s2", "description": "사랑댁이(가) 진행하는 마미포코 마미포코 팬티기저귀 XL 2팩+물티슈 10팩 공동구매. 공구가 35,500원 (34% 할인)", "date": "2026-04-01", "gonggu_info": {"is_gonggu": true, "product_name": "마미포코 팬티기저귀 XL 2팩+물티슈 10팩", "brand": "마미포코", "price": "35,500원", "original_price": "54,000원", "discount": "34%", "period": "04/12", "status": "오픈예정", "keywords_found": ["공구", "공동구매", "특가"]}, "category": "기저귀/위생", "influencer": {"id": 6, "name": "사랑댁", "handle": "peach0724s2", "platform": "instagram", "url": "https://instagram.com/peach0724s2", "followers": "94K", "category": "육아/키즈"}}, {"uid": "7c2cc5c00a60", "title": "[공구] 오가닉 당근 단호박 이유식 파우치 10팩", "link": "https://instagram.com/honey_momlog", "description": "꿀단지맘이(가) 진행하는 베이비본죽 오가닉 당근 단호박 이유식 파우치 10팩 공동구매. 공구가 18,900원 (32% 할인)", "date": "2026-04-01", "gonggu_info": {"is_gonggu": true, "product_name": "오가닉 당근 단호박 이유식 파우치 10팩", "brand": "베이비본죽", "price": "18,900원", "original_price": "28,000원", "discount": "32%", "period": "04/04", "status": "오늘마감", "keywords_found": ["공구", "공동구매", "특가"]}, "category": "이유식/식품", "influencer": {"id": 8, "name": "꿀단지맘", "handle": "honey_momlog", "platform": "instagram", "url": "https://instagram.com/honey_momlog", "followers": "58K", "category": "육아/공구"}}, {"uid": "90ae06cfd08a", "title": "[공구] 아이꼼마 초기 이유식 쌀가루 500g×3", "link": "https://instagram.com/hayoon_mama_log", "description": "하윤맘이(가) 진행하는 아이꼼마 아이꼼마 초기 이유식 쌀가루 500g×3 공동구매. 공구가 22,500원 (32% 할인)", "date": "2026-04-01", "gonggu_info": {"is_gonggu": true, "product_name": "아이꼼마 초기 이유식 쌀가루 500g×3", "brand": "아이꼼마", "price": "22,500원", "original_price": "33,000원", "discount": "32%", "period": "04/07", "status": "진행중", "keywords_found": ["공구", "공동구매", "특가"]}, "category": "이유식/식품", "influencer": {"id": 14, "name": "하윤맘", "handle": "hayoon_mama_log", "platform": "instagram", "url": "https://instagram.com/hayoon_mama_log", "followers": "36K", "category": "육아/교육"}}, {"uid": "606e2c571c6c", "title": "[공구] 미미월드 보온 젖병 가방+쿨러팩 세트", "link": "https://instagram.com/rumi_mom_daily", "description": "루미맘이(가) 진행하는 미미월드 미미월드 보온 젖병 가방+쿨러팩 세트 공동구매. 공구가 15,900원 (28% 할인)", "date": "2026-04-01", "gonggu_info": {"is_gonggu": true, "product_name": "미미월드 보온 젖병 가방+쿨러팩 세트", "brand": "미미월드", "price": "15,900원", "original_price": "22,000원", "discount": "28%", "period": "04/08", "status": "진행중", "keywords_found": ["공구", "공동구매", "특가"]}, "category": "수유/젖병", "influencer": {"id": 15, "name": "루미맘", "handle": "rumi_mom_daily", "platform": "instagram", "url": "https://instagram.com/rumi_mom_daily", "followers": "33K", "category": "육아"}}, {"uid": "1be84ce665ee", "title": "[공구] 안전문 계단/문 울타리 철제형 140cm", "link": "https://blog.naver.com/save_mom_life", "description": "알뜰살뜰맘이(가) 진행하는 베이비세이프 안전문 계단/문 울타리 철제형 140cm 공동구매. 공구가 45,900원 (32% 할인)", "date": "2026-04-01", "gonggu_info": {"is_gonggu": true, "product_name": "안전문 계단/문 울타리 철제형 140cm", "brand": "베이비세이프", "price": "45,900원", "original_price": "68,000원", "discount": "32%", "period": "04/04", "status": "오늘마감", "keywords_found": ["공구", "공동구매", "특가"]}, "category": "가구/인테리어", "influencer": {"id": 17, "name": "알뜰살뜰맘", "handle": "save_mom_life", "platform": "naver_blog", "url": "https://blog.naver.com/save_mom_life", "followers": "일방문 6천+", "category": "육아/절약"}}, {"uid": "6550d8556c03", "title": "[공구] 안전문 계단/문 울타리 철제형 140cm", "link": "https://blog.naver.com/haru_one_mom", "description": "하루하나육아이(가) 진행하는 베이비세이프 안전문 계단/문 울타리 철제형 140cm 공동구매. 공구가 45,900원 (32% 할인)", "date": "2026-04-01", "gonggu_info": {"is_gonggu": true, "product_name": "안전문 계단/문 울타리 철제형 140cm", "brand": "베이비세이프", "price": "45,900원", "original_price": "68,000원", "discount": "32%", "period": "04/08", "status": "진행중", "keywords_found": ["공구", "공동구매", "특가"]}, "category": "가구/인테리어", "influencer": {"id": 20, "name": "하루하나육아", "handle": "haru_one_mom", "platform": "naver_blog", "url": "https://blog.naver.com/haru_one_mom", "followers": "일방문 4천+", "category": "육아"}}, {"uid": "b7e361c88cbe", "title": "[공구] BDZ 아동 사계절 내의 5종 세트 (90-130)", "link": "https://blog.naver.com/haru_one_mom", "description": "하루하나육아이(가) 진행하는 블루독 BDZ 아동 사계절 내의 5종 세트 (90-130) 공동구매. 공구가 38,900원 (33% 할인)", "date": "2026-04-01", "gonggu_info": {"is_gonggu": true, "product_name": "BDZ 아동 사계절 내의 5종 세트 (90-130)", "brand": "블루독", "price": "38,900원", "original_price": "58,000원", "discount": "33%", "period": "04/11", "status": "오픈예정", "keywords_found": ["공구", "공동구매", "특가"]}, "category": "의류/패션", "influencer": {"id": 20, "name": "하루하나육아", "handle": "haru_one_mom", "platform": "naver_blog", "url": "https://blog.naver.com/haru_one_mom", "followers": "일방문 4천+", "category": "육아"}}];
+const SCRAPED_AT = "2026-04-04T15:13:41.452787";
+
+let curCat = 'all', curPlat = 'all';
+
+function init(){
+  // 업데이트 시간
+  const d = new Date(SCRAPED_AT);
+  document.getElementById('lu').textContent =
+    `마지막 업데이트: ${d.getFullYear()}.${d.getMonth()+1}.${d.getDate()} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+
+  // 통계
+  document.getElementById('sTotal').textContent  = D.length;
+  document.getElementById('sInf').textContent    = new Set(D.map(x=>x.influencer.handle)).size;
+  document.getElementById('sActive').textContent = D.filter(x=>x.gonggu_info.status==='진행중').length;
+  document.getElementById('sEnd').textContent    = D.filter(x=>x.gonggu_info.status==='오늘마감').length;
+
+  buildCatChips();
+  render();
+}
+
+function buildCatChips(){
+  const cnt={};
+  D.forEach(d=>{ const c=d.category||'기타'; cnt[c]=(cnt[c]||0)+1; });
+  const bar=document.getElementById('catBar');
+  Object.entries(cnt).sort((a,b)=>b[1]-a[1]).forEach(([c,n])=>{
+    const s=document.createElement('span');
+    s.className='chip'; s.dataset.c=c;
+    s.innerHTML=`${c} <span class="cnt">${n}</span>`;
+    s.onclick=()=>setCat(c);
+    bar.appendChild(s);
+  });
+}
+
+function setCat(c){
+  curCat=c;
+  document.querySelectorAll('.chip').forEach(x=>x.classList.toggle('on',x.dataset.c===c));
+  render();
+}
+
+function setPlatform(p){
+  curPlat=p;
+  document.querySelectorAll('.ptab').forEach(x=>x.classList.toggle('on',x.dataset.p===p));
+  render();
+}
+
+function getFiltered(){
+  const q=document.getElementById('q').value.toLowerCase();
+  return D.filter(d=>{
+    if(curCat!=='all'&&d.category!==curCat) return false;
+    if(curPlat!=='all'&&d.influencer.platform!==curPlat) return false;
+    if(q){
+      const t=[d.gonggu_info.product_name,d.gonggu_info.brand,d.influencer.name,d.influencer.handle,d.category]
+        .join(' ').toLowerCase();
+      if(!t.includes(q)) return false;
+    }
+    return true;
+  });
+}
+
+function sorted(arr){
+  const s=document.getElementById('sortSel').value;
+  return [...arr].sort((a,b)=>{
+    switch(s){
+      case 'latest':   return b.date.localeCompare(a.date);
+      case 'discount': return parseInt(b.gonggu_info.discount)-parseInt(a.gonggu_info.discount);
+      case 'ending':   const o={'오늘마감':0,'마감임박':1,'진행중':2,'오픈예정':3};
+                       return (o[a.gonggu_info.status]??4)-(o[b.gonggu_info.status]??4);
+      case 'price_lo': return numPrice(a)-numPrice(b);
+      case 'price_hi': return numPrice(b)-numPrice(a);
+      default: return 0;
+    }
+  });
+}
+const numPrice=d=>parseInt((d.gonggu_info.price||'0').replace(/[^0-9]/g,''))||0;
+
+function render(){
+  const data=sorted(getFiltered());
+  document.getElementById('resCnt').textContent=`${data.length}건`;
+  const grid=document.getElementById('grid');
+  if(!data.length){
+    grid.innerHTML=`<div class="empty"><div class="ico">🔍</div><p>검색 결과가 없습니다</p></div>`;
+    return;
+  }
+  grid.innerHTML=data.map(d=>{
+    const i=d.influencer, g=d.gonggu_info;
+    const av=i.platform==='instagram'?'av-ig':'av-nb';
+    const ic=i.platform==='instagram'?'📸':'📝';
+    return `<div class="card" onclick="openModal('${d.uid}')">
+      <div class="card-top">
+        <div class="inf-row">
+          <div class="avatar ${av}">${i.name[0]}</div>
+          <div>
+            <div class="inf-name">${i.name}</div>
+            <div class="inf-handle">${ic} @${i.handle} · ${i.followers}</div>
+          </div>
+        </div>
+        <span class="status st-${g.status}">${g.status}</span>
+      </div>
+      <div class="card-body">
+        ${g.brand?`<div class="brand-tag">${g.brand}</div>`:''}
+        <div class="prod-name">${(g.product_name||d.title).replace(new RegExp('^'+g.brand+'\\s*'),'').trim()||g.product_name||d.title}</div>
+        <div class="price-row">
+          <span class="price">${g.price}</span>
+          <span class="orig">${g.original_price}</span>
+          <span class="disc">${g.discount} OFF</span>
+        </div>
+      </div>
+      <div class="card-foot">
+        <span class="cat-tag">${d.category}</span>
+        <span>~${g.period||''} 마감</span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function openModal(uid){
+  const d=D.find(x=>x.uid===uid); if(!d) return;
+  const i=d.influencer, g=d.gonggu_info;
+  const av=i.platform==='instagram'?'av-ig':'av-nb';
+  document.getElementById('modal').innerHTML=`
+    <div class="modal-head">
+      <h3>${g.product_name||d.title}</h3>
+      <button class="close-btn" onclick="closeModal()">×</button>
+    </div>
+    <div class="inf-card">
+      <div class="avatar ${av}" style="width:44px;height:44px">${i.name[0]}</div>
+      <div>
+        <div style="font-weight:800">${i.name}</div>
+        <div style="font-size:.78rem;color:#999">@${i.handle} · ${i.followers} 팔로워</div>
+      </div>
+    </div>
+    <div class="info-box">
+      <div class="info-row"><span>브랜드</span><span class="info-val">${g.brand||'-'}</span></div>
+      <div class="info-row"><span>공구가</span><span class="info-val" style="color:var(--pink);font-size:1.1rem">${g.price}</span></div>
+      <div class="info-row"><span>정가</span><span class="info-val" style="text-decoration:line-through;color:#aaa">${g.original_price}</span></div>
+      <div class="info-row"><span>할인율</span><span class="info-val" style="color:var(--pink)">${g.discount} OFF</span></div>
+      <div class="info-row"><span>마감일</span><span class="info-val">${g.period||'-'}</span></div>
+      <div class="info-row"><span>상태</span><span class="status st-${g.status}" style="padding:.2rem .6rem">${g.status}</span></div>
+    </div>
+    <a class="go-btn" href="${d.link}" target="_blank" rel="noopener">
+      ${i.platform==='instagram'?'📸 인스타그램':'📝 블로그'}에서 공구 보기 →
+    </a>
+  `;
+  document.getElementById('ov').classList.add('show');
+}
+function closeModal(e){
+  if(!e||e.target===e.currentTarget)
+    document.getElementById('ov').classList.remove('show');
+}
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal()});
+init();
+</script>
+</body>
+</html>

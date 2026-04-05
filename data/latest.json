@@ -1,46 +1,13 @@
 {
-  "scraped_at": "2026-04-05T06:41:09.676787",
+  "scraped_at": "2026-04-05T14:35:38.235237",
   "date": "2026-04-05",
   "stats": {
-    "total": 1,
-    "influencers": 1,
-    "instagram": 1,
+    "total": 0,
+    "influencers": 0,
+    "instagram": 0,
     "naver": 0,
     "errors": 0
   },
-  "total_gonggu_found": 1,
-  "results": [
-    {
-      "uid": "real_1775312820806",
-      "title": "[공구] 양말 26ss 선오픈",
-      "link": "https://blog.naver.com/hamham24/224199384907",
-      "description": "",
-      "date": "2026-04-04",
-      "is_real": true,
-      "gonggu_info": {
-        "is_gonggu": true,
-        "product_name": "양말 26ss 선오픈",
-        "brand": "폴프랜즈",
-        "price": "10,000원",
-        "original_price": "10,000원",
-        "discount": "0%",
-        "period": "04/11",
-        "status": "진행중",
-        "keywords_found": [
-          "공구",
-          "실제공구"
-        ]
-      },
-      "category": "의류/패션",
-      "influencer": {
-        "id": 0,
-        "name": "우당탕탕 띠오월드",
-        "handle": "",
-        "platform": "instagram",
-        "url": "https://instagram.com/",
-        "followers": "",
-        "category": "육아"
-      }
-    }
-  ]
+  "total_gonggu_found": 0,
+  "results": []
 }

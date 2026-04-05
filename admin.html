@@ -223,7 +223,11 @@ async function loadData() {
       headers: { Authorization: 'token ' + TOKEN }
     });
     const meta = await r.json();
-    allData = JSON.parse(atob(meta.content.replace(/\n/g,'')));
+    const b64 = meta.content.replace(/\n/g,'');
+    const binary = atob(b64);
+    const bytes = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+    allData = JSON.parse(new TextDecoder('utf-8').decode(bytes));
     updateStats();
     renderList();
   } catch(e) {
@@ -327,7 +331,11 @@ async function confirmDelete() {
       headers: { Authorization: 'token ' + TOKEN }
     });
     const meta = await r.json();
-    const currentData = JSON.parse(atob(meta.content.replace(/\n/g,'')));
+    const b64c = meta.content.replace(/\n/g,'');
+    const binc = atob(b64c);
+    const bytesc = new Uint8Array(binc.length);
+    for (let i = 0; i < binc.length; i++) bytesc[i] = binc.charCodeAt(i);
+    const currentData = JSON.parse(new TextDecoder('utf-8').decode(bytesc));
     const newData = currentData.filter(x => x.id != id);
 
     const newContent = btoa(unescape(encodeURIComponent(JSON.stringify(newData, null, 2))));

@@ -190,181 +190,182 @@ def build_data():
 # ──────────────────────────────────────────
 # HTML 생성
 # ──────────────────────────────────────────
-def build_html(data):
-    results    = data["results"]
-    stats      = data["stats"]
-    scraped_at = data["scraped_at"]
+def build_html():
+    """데이터를 빌드 시 박지 않고, 런타임에 JSON을 fetch하는 정적 HTML 생성"""
 
-    PLATFORM_ICON = {"instagram":"📸", "naver_blog":"📝"}
-    STATUS_COLOR  = {"진행중":"#00C851","마감임박":"#FF6900","오늘마감":"#FF0000","오픈예정":"#0066CC"}
-
-    # 전체 데이터 JSON
-    results_json = json.dumps(results, ensure_ascii=False)
-
-    html = f"""<!DOCTYPE html>
+    html = """<!DOCTYPE html>
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>🍼 육아 공구 모아보기</title>
 <style>
-*{{margin:0;padding:0;box-sizing:border-box}}
-:root{{
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
   --pink:#FF6B9D;--pink-light:#FFF0F5;
   --teal:#00BFA5;--teal-light:#E0F7F4;
   --yellow:#FFD93D;--orange:#FF6900;
   --dark:#1A1A2E;--gray:#6B7280;--light:#F7F8FC;
   --white:#fff;
   --r:14px;--shadow:0 2px 16px rgba(0,0,0,.07);--shadow2:0 8px 32px rgba(0,0,0,.13)
-}}
-body{{font-family:-apple-system,BlinkMacSystemFont,'Noto Sans KR',sans-serif;background:var(--light);color:var(--dark)}}
+}
+body{font-family:-apple-system,BlinkMacSystemFont,'Noto Sans KR',sans-serif;background:var(--light);color:var(--dark)}
 
 /* ── HEADER ── */
-.header{{
+.header{
   background:linear-gradient(135deg,#FF6B9D 0%,#FF8C69 100%);
   color:#fff;padding:1.25rem 1rem .8rem;text-align:center;
   position:sticky;top:0;z-index:200;
   box-shadow:0 4px 20px rgba(255,107,157,.35)
-}}
-.header h1{{font-size:1.6rem;font-weight:900;letter-spacing:-.5px}}
-.header .sub{{font-size:.82rem;opacity:.88;margin-top:.2rem}}
-.last-update{{font-size:.72rem;opacity:.7;margin-top:.35rem}}
+}
+.header h1{font-size:1.6rem;font-weight:900;letter-spacing:-.5px}
+.header .sub{font-size:.82rem;opacity:.88;margin-top:.2rem}
+.last-update{font-size:.72rem;opacity:.7;margin-top:.35rem}
 
 /* ── STATS ── */
-.stats{{display:flex;justify-content:center;gap:2rem;padding:.9rem 1rem;background:#fff;border-bottom:1px solid #f0f0f0;flex-wrap:wrap}}
-.s-item{{text-align:center}}
-.s-num{{font-size:1.55rem;font-weight:900;color:var(--pink)}}
-.s-label{{font-size:.68rem;color:var(--gray);margin-top:.1rem;letter-spacing:.03em}}
+.stats{display:flex;justify-content:center;gap:2rem;padding:.9rem 1rem;background:#fff;border-bottom:1px solid #f0f0f0;flex-wrap:wrap}
+.s-item{text-align:center}
+.s-num{font-size:1.55rem;font-weight:900;color:var(--pink)}
+.s-label{font-size:.68rem;color:var(--gray);margin-top:.1rem;letter-spacing:.03em}
 
 /* ── SEARCH ── */
-.search-wrap{{padding:.8rem 1rem;background:#fff;border-bottom:1px solid #f0f0f0}}
-.search-inner{{max-width:600px;margin:0 auto;position:relative}}
-.search-inner input{{
+.search-wrap{padding:.8rem 1rem;background:#fff;border-bottom:1px solid #f0f0f0}
+.search-inner{max-width:600px;margin:0 auto;position:relative}
+.search-inner input{
   width:100%;padding:.7rem 1rem .7rem 2.6rem;
   border:2px solid #e5e7eb;border-radius:40px;font-size:.92rem;outline:none;
   transition:border-color .2s
-}}
-.search-inner input:focus{{border-color:var(--pink)}}
-.search-inner::before{{content:"🔍";position:absolute;left:.9rem;top:50%;transform:translateY(-50%);font-size:.9rem}}
+}
+.search-inner input:focus{border-color:var(--pink)}
+.search-inner::before{content:"🔍";position:absolute;left:.9rem;top:50%;transform:translateY(-50%);font-size:.9rem}
 
 /* ── PLATFORM TABS ── */
-.platform-tabs{{display:flex;gap:.5rem;padding:.6rem 1rem;background:#fff;border-bottom:1px solid #f0f0f0}}
-.ptab{{padding:.35rem .9rem;border-radius:20px;font-size:.8rem;font-weight:700;cursor:pointer;border:1.5px solid #e0e0e0;background:#fff;transition:all .2s}}
-.ptab.on{{background:var(--dark);color:#fff;border-color:var(--dark)}}
+.platform-tabs{display:flex;gap:.5rem;padding:.6rem 1rem;background:#fff;border-bottom:1px solid #f0f0f0}
+.ptab{padding:.35rem .9rem;border-radius:20px;font-size:.8rem;font-weight:700;cursor:pointer;border:1.5px solid #e0e0e0;background:#fff;transition:all .2s}
+.ptab.on{background:var(--dark);color:#fff;border-color:var(--dark)}
 
 /* ── CATEGORY FILTER ── */
-.cat-bar{{padding:.6rem 1rem;overflow-x:auto;white-space:nowrap;background:#fff;border-bottom:1px solid #f0f0f0;scrollbar-width:none}}
-.cat-bar::-webkit-scrollbar{{display:none}}
-.chip{{
+.cat-bar{padding:.6rem 1rem;overflow-x:auto;white-space:nowrap;background:#fff;border-bottom:1px solid #f0f0f0;scrollbar-width:none}
+.cat-bar::-webkit-scrollbar{display:none}
+.chip{
   display:inline-block;padding:.35rem .9rem;margin-right:.4rem;
   border-radius:20px;font-size:.78rem;font-weight:600;cursor:pointer;
   border:1.5px solid #e0e0e0;background:#fff;color:#555;transition:all .2s
-}}
-.chip:hover{{border-color:var(--pink);color:var(--pink)}}
-.chip.on{{background:var(--pink);color:#fff;border-color:var(--pink)}}
-.chip .cnt{{font-size:.68rem;opacity:.75;margin-left:.15rem}}
+}
+.chip:hover{border-color:var(--pink);color:var(--pink)}
+.chip.on{background:var(--pink);color:#fff;border-color:var(--pink)}
+.chip .cnt{font-size:.68rem;opacity:.75;margin-left:.15rem}
 
 /* ── SORT BAR ── */
-.sort-bar{{display:flex;justify-content:space-between;align-items:center;padding:.5rem 1rem}}
-.res-cnt{{font-size:.82rem;color:var(--gray)}}
-.sort-sel{{padding:.35rem .7rem;border:1px solid #ddd;border-radius:8px;font-size:.78rem;background:#fff;outline:none}}
+.sort-bar{display:flex;justify-content:space-between;align-items:center;padding:.5rem 1rem}
+.res-cnt{font-size:.82rem;color:var(--gray)}
+.sort-sel{padding:.35rem .7rem;border:1px solid #ddd;border-radius:8px;font-size:.78rem;background:#fff;outline:none}
 
 /* ── GRID ── */
-.grid{{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:.9rem;padding:.4rem 1rem 3rem;max-width:1240px;margin:0 auto}}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:.9rem;padding:.4rem 1rem 3rem;max-width:1240px;margin:0 auto}
 
 /* ── CARD ── */
-.card{{
+.card{
   background:#fff;border-radius:var(--r);box-shadow:var(--shadow);
   cursor:pointer;transition:all .25s;overflow:hidden;position:relative
-}}
-.card:hover{{box-shadow:var(--shadow2);transform:translateY(-3px)}}
+}
+.card:hover{box-shadow:var(--shadow2);transform:translateY(-3px)}
 
-.card-top{{padding:.9rem 1rem .5rem;display:flex;justify-content:space-between;align-items:flex-start}}
-.inf-row{{display:flex;align-items:center;gap:.55rem}}
-.avatar{{
+.card-top{padding:.9rem 1rem .5rem;display:flex;justify-content:space-between;align-items:flex-start}
+.inf-row{display:flex;align-items:center;gap:.55rem}
+.avatar{
   width:38px;height:38px;border-radius:50%;
   display:flex;align-items:center;justify-content:center;
   font-size:.85rem;font-weight:800;color:#fff;flex-shrink:0
-}}
-.av-ig{{background:linear-gradient(135deg,#833AB4,#FD1D1D,#FCB045)}}
-.av-nb{{background:linear-gradient(135deg,#03C75A,#00863C)}}
-.inf-name{{font-size:.85rem;font-weight:800}}
-.inf-handle{{font-size:.7rem;color:var(--gray)}}
+}
+.av-ig{background:linear-gradient(135deg,#833AB4,#FD1D1D,#FCB045)}
+.av-nb{background:linear-gradient(135deg,#03C75A,#00863C)}
+.inf-name{font-size:.85rem;font-weight:800}
+.inf-handle{font-size:.7rem;color:var(--gray)}
 
-.status{{
+.status{
   padding:.2rem .55rem;border-radius:10px;font-size:.68rem;font-weight:800;
   white-space:nowrap;flex-shrink:0
-}}
-.st-진행중{{background:#E8F5E9;color:#2E7D32}}
-.st-마감임박{{background:#FFF3E0;color:#E65100}}
-.st-오늘마감{{background:#FFEBEE;color:#C62828;animation:blink 1.5s ease-in-out infinite}}
-.st-오픈예정{{background:#E3F2FD;color:#1565C0}}
-@keyframes blink{{0%,100%{{opacity:1}}50%{{opacity:.5}}}}
+}
+.st-진행중{background:#E8F5E9;color:#2E7D32}
+.st-마감임박{background:#FFF3E0;color:#E65100}
+.st-오늘마감{background:#FFEBEE;color:#C62828;animation:blink 1.5s ease-in-out infinite}
+.st-오픈예정{background:#E3F2FD;color:#1565C0}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.5}}
 
-.real-badge{{
+.real-badge{
   background:linear-gradient(135deg,#43A047,#00897B);color:#fff;
   padding:.15rem .45rem;border-radius:8px;font-size:.62rem;font-weight:800;
   white-space:nowrap;letter-spacing:.02em
-}}
-.real-card{{border:2px solid #A5D6A7 !important;box-shadow:0 2px 16px rgba(76,175,80,.18) !important}}
+}
+.real-card{border:2px solid #A5D6A7 !important;box-shadow:0 2px 16px rgba(76,175,80,.18) !important}
 
-.card-body{{padding:.4rem 1rem .8rem}}
-.prod-name{{font-size:.95rem;font-weight:800;line-height:1.4;margin-bottom:.45rem}}
-.brand-tag{{
+.card-body{padding:.4rem 1rem .8rem}
+.prod-name{font-size:.95rem;font-weight:800;line-height:1.4;margin-bottom:.45rem}
+.brand-tag{
   display:inline-block;background:var(--teal-light);color:#00695C;
   padding:.1rem .45rem;border-radius:6px;font-size:.68rem;font-weight:700;margin-bottom:.4rem
-}}
-.price-row{{display:flex;align-items:baseline;gap:.45rem;flex-wrap:wrap}}
-.price{{font-size:1.18rem;font-weight:900;color:var(--pink)}}
-.orig{{font-size:.78rem;color:#aaa;text-decoration:line-through}}
-.disc{{background:var(--pink);color:#fff;padding:.15rem .45rem;border-radius:6px;font-size:.72rem;font-weight:800}}
+}
+.price-row{display:flex;align-items:baseline;gap:.45rem;flex-wrap:wrap}
+.price{font-size:1.18rem;font-weight:900;color:var(--pink)}
+.orig{font-size:.78rem;color:#aaa;text-decoration:line-through}
+.disc{background:var(--pink);color:#fff;padding:.15rem .45rem;border-radius:6px;font-size:.72rem;font-weight:800}
 
-.card-foot{{
+.card-foot{
   display:flex;justify-content:space-between;align-items:center;
   padding:.55rem 1rem;border-top:1px solid #f5f5f5;font-size:.73rem;color:var(--gray)
-}}
-.cat-tag{{background:#F3F4F6;color:#555;padding:.15rem .5rem;border-radius:6px;font-size:.7rem;font-weight:600}}
+}
+.cat-tag{background:#F3F4F6;color:#555;padding:.15rem .5rem;border-radius:6px;font-size:.7rem;font-weight:600}
 
 /* ── MODAL ── */
-.overlay{{
+.overlay{
   display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);
   z-index:500;justify-content:center;align-items:center;padding:1rem
-}}
-.overlay.show{{display:flex}}
-.modal{{
+}
+.overlay.show{display:flex}
+.modal{
   background:#fff;border-radius:20px;max-width:480px;width:100%;
   max-height:88vh;overflow-y:auto;padding:1.5rem;
   box-shadow:0 20px 60px rgba(0,0,0,.2)
-}}
-.modal-head{{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:1rem}}
-.modal-head h3{{font-size:1.05rem;font-weight:800;line-height:1.4;flex:1;padding-right:.5rem}}
-.close-btn{{background:none;border:none;font-size:1.4rem;cursor:pointer;color:#aaa;flex-shrink:0}}
-.info-box{{background:var(--light);border-radius:12px;padding:1rem;margin-bottom:1rem}}
-.info-row{{display:flex;justify-content:space-between;align-items:center;padding:.35rem 0;border-bottom:1px solid #eee;font-size:.88rem}}
-.info-row:last-child{{border:none}}
-.info-val{{font-weight:700}}
-.go-btn{{
+}
+.modal-head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:1rem}
+.modal-head h3{font-size:1.05rem;font-weight:800;line-height:1.4;flex:1;padding-right:.5rem}
+.close-btn{background:none;border:none;font-size:1.4rem;cursor:pointer;color:#aaa;flex-shrink:0}
+.info-box{background:var(--light);border-radius:12px;padding:1rem;margin-bottom:1rem}
+.info-row{display:flex;justify-content:space-between;align-items:center;padding:.35rem 0;border-bottom:1px solid #eee;font-size:.88rem}
+.info-row:last-child{border:none}
+.info-val{font-weight:700}
+.go-btn{
   display:block;text-align:center;
   background:linear-gradient(135deg,var(--pink),#FF8C69);
   color:#fff;padding:.85rem;border-radius:12px;
   text-decoration:none;font-weight:800;font-size:.95rem;
   box-shadow:0 4px 15px rgba(255,107,157,.35)
-}}
-.inf-card{{display:flex;align-items:center;gap:.75rem;padding:.8rem;background:#f9f9f9;border-radius:12px;margin-bottom:1rem}}
+}
+.inf-card{display:flex;align-items:center;gap:.75rem;padding:.8rem;background:#f9f9f9;border-radius:12px;margin-bottom:1rem}
+
+/* ── LOADING ── */
+.loading-wrap{grid-column:1/-1;text-align:center;padding:4rem 1rem;color:var(--gray)}
+@keyframes spin{to{transform:rotate(360deg)}}
+.spinner{display:inline-block;width:36px;height:36px;border:3px solid #eee;border-top-color:var(--pink);border-radius:50%;animation:spin .8s linear infinite;margin-bottom:1rem}
 
 /* ── EMPTY ── */
-.empty{{grid-column:1/-1;text-align:center;padding:4rem 1rem;color:var(--gray)}}
-.empty .ico{{font-size:3rem;margin-bottom:1rem}}
+.empty{grid-column:1/-1;text-align:center;padding:4rem 1rem;color:var(--gray)}
+.empty .ico{font-size:3rem;margin-bottom:1rem}
 
 /* ── FOOTER ── */
-footer{{text-align:center;padding:1.5rem 1rem;font-size:.75rem;color:#bbb}}
+footer{text-align:center;padding:1.5rem 1rem;font-size:.75rem;color:#bbb}
 
-@media(max-width:640px){{
-  .header h1{{font-size:1.35rem}}
-  .stats{{gap:1.2rem}}
-  .s-num{{font-size:1.3rem}}
-  .grid{{grid-template-columns:1fr;padding:.4rem .75rem 3rem}}
-}}
+/* ── 새로고침 버튼 ── */
+.refresh-btn{background:rgba(255,255,255,.2);border:none;color:white;padding:.3rem .7rem;border-radius:12px;font-size:.75rem;cursor:pointer;margin-top:.4rem;display:inline-block}
+.refresh-btn:hover{background:rgba(255,255,255,.35)}
+
+@media(max-width:640px){
+  .header h1{font-size:1.35rem}
+  .stats{gap:1.2rem}
+  .s-num{font-size:1.3rem}
+  .grid{grid-template-columns:1fr;padding:.4rem .75rem 3rem}
+}
 </style>
 </head>
 <body>
@@ -372,12 +373,13 @@ footer{{text-align:center;padding:1.5rem 1rem;font-size:.75rem;color:#bbb}}
 <div class="header">
   <h1>🍼 육아 공구 모아보기</h1>
   <p class="sub">인기 육아 인플루언서들의 공동구매 한눈에 보기</p>
-  <p class="last-update" id="lu">업데이트 로딩중...</p>
+  <p class="last-update" id="lu">데이터 불러오는 중...</p>
+  <button class="refresh-btn" onclick="loadData()">🔄 새로고침</button>
 </div>
 
 <div class="stats">
-  <div class="s-item"><div class="s-num" id="sTotal">-</div><div class="s-label">TODAY 공구</div></div>
-  <div class="s-item"><div class="s-num" id="sInf">-</div><div class="s-label">참여 인플루언서</div></div>
+  <div class="s-item"><div class="s-num" id="sTotal">-</div><div class="s-label">전체 공구</div></div>
+  <div class="s-item"><div class="s-num" id="sInf">-</div><div class="s-label">인플루언서</div></div>
   <div class="s-item"><div class="s-num" id="sActive">-</div><div class="s-label">진행중</div></div>
   <div class="s-item"><div class="s-num" id="sEnd">-</div><div class="s-label">오늘마감</div></div>
 </div>
@@ -389,7 +391,7 @@ footer{{text-align:center;padding:1.5rem 1rem;font-size:.75rem;color:#bbb}}
 </div>
 
 <div class="platform-tabs">
-  <button class="ptab on" data-p="all"   onclick="setPlatform('all')">전체</button>
+  <button class="ptab on" data-p="all"        onclick="setPlatform('all')">전체</button>
   <button class="ptab"    data-p="instagram"  onclick="setPlatform('instagram')">📸 인스타그램</button>
   <button class="ptab"    data-p="naver_blog" onclick="setPlatform('naver_blog')">📝 블로그</button>
 </div>
@@ -409,10 +411,12 @@ footer{{text-align:center;padding:1.5rem 1rem;font-size:.75rem;color:#bbb}}
   </select>
 </div>
 
-<div class="grid" id="grid"></div>
+<div class="grid" id="grid">
+  <div class="loading-wrap"><div class="spinner"></div><br>공구 데이터 불러오는 중...</div>
+</div>
 
 <footer>
-  매일 오전 8시 자동 업데이트 · 북마크릿으로 직접 추가하는 실제 공구만 표시<br>
+  북마크릿으로 직접 추가하는 실제 공구만 표시 · 저장 즉시 반영<br>
   📸 인스타그램 + 📝 블로그
 </footer>
 
@@ -421,162 +425,221 @@ footer{{text-align:center;padding:1.5rem 1rem;font-size:.75rem;color:#bbb}}
 </div>
 
 <script>
-const D = {results_json};
-const SCRAPED_AT = "{scraped_at}";
+// ── GitHub raw URL에서 실시간 fetch ──────────────────────────
+const DATA_URL = 'https://raw.githubusercontent.com/ky5070-code/gonggu-tracker/main/data/real_gonggu.json';
 
+let D = [];
 let curCat = 'all', curPlat = 'all';
 
-function init(){{
-  // 업데이트 시간
-  const d = new Date(SCRAPED_AT);
-  document.getElementById('lu').textContent =
-    `마지막 업데이트: ${{d.getFullYear()}}.${{d.getMonth()+1}}.${{d.getDate()}} ${{String(d.getHours()).padStart(2,'0')}}:${{String(d.getMinutes()).padStart(2,'0')}}`;
+// raw JSON → 렌더링용 형식으로 변환
+function transform(item) {
+  const endStr = item.end_date || '';
+  let period = '';
+  if (endStr.length === 10 && endStr.includes('-')) {
+    period = endStr.slice(5).replace('-', '/');
+  } else { period = endStr; }
 
-  // 통계
-  document.getElementById('sTotal').textContent  = D.length;
-  document.getElementById('sInf').textContent    = new Set(D.map(x=>x.influencer.handle)).size;
-  document.getElementById('sActive').textContent = D.filter(x=>x.gonggu_info.status==='진행중').length;
-  document.getElementById('sEnd').textContent    = D.filter(x=>x.gonggu_info.status==='오늘마감').length;
+  const orig = parseInt(item.original_price) || 0;
+  const sale = parseInt(item.sale_price) || orig;
+  const disc = item.discount_rate || (orig > 0 ? Math.round((1 - sale/orig)*100) : 0);
+  const handle = (item.handle || '').replace('@', '');
+  const platform = item.platform || 'instagram';
+  const infUrl = platform === 'instagram'
+    ? 'https://instagram.com/' + handle
+    : 'https://blog.naver.com/' + handle;
 
-  buildCatChips();
-  render();
-}}
+  return {
+    uid: item.id || 'real_' + Date.now(),
+    title: '[공구] ' + (item.product_name || ''),
+    link: item.link || infUrl,
+    description: item.description || '',
+    date: item.created_at || new Date().toISOString().split('T')[0],
+    is_real: true,
+    gonggu_info: {
+      product_name: item.product_name || '',
+      brand: item.brand || '',
+      price: sale.toLocaleString() + '원',
+      original_price: orig.toLocaleString() + '원',
+      discount: disc + '%',
+      period: period,
+      status: item.status || '진행중'
+    },
+    category: item.category || '기타',
+    influencer: {
+      name: item.influencer || '',
+      handle: handle,
+      platform: platform,
+      url: infUrl,
+      followers: item.followers || ''
+    }
+  };
+}
 
-function buildCatChips(){{
-  const cnt={{}};
-  D.forEach(d=>{{ const c=d.category||'기타'; cnt[c]=(cnt[c]||0)+1; }});
+async function loadData() {
+  document.getElementById('lu').textContent = '데이터 불러오는 중...';
+  document.getElementById('grid').innerHTML = '<div class="loading-wrap"><div class="spinner"></div><br>공구 데이터 불러오는 중...</div>';
+  try {
+    const r = await fetch(DATA_URL + '?t=' + Date.now());
+    const raw = await r.json();
+    D = raw.map(transform).sort((a,b) => b.date.localeCompare(a.date));
+
+    // 업데이트 시간 표시
+    const latest = D.length > 0 ? D[0].date : null;
+    const now = new Date();
+    document.getElementById('lu').textContent =
+      '최근 등록: ' + (latest || '-') +
+      ' · ' + now.getHours() + ':' + String(now.getMinutes()).padStart(2,'0') + ' 기준';
+
+    // 통계
+    document.getElementById('sTotal').textContent  = D.length;
+    document.getElementById('sInf').textContent    = new Set(D.map(x=>x.influencer.handle||x.influencer.name)).size;
+    document.getElementById('sActive').textContent = D.filter(x=>x.gonggu_info.status==='진행중').length;
+    document.getElementById('sEnd').textContent    = D.filter(x=>x.gonggu_info.status==='오늘마감').length;
+
+    buildCatChips();
+    render();
+  } catch(e) {
+    document.getElementById('lu').textContent = '데이터 로드 실패';
+    document.getElementById('grid').innerHTML = '<div class="empty"><div class="ico">⚠️</div><p>데이터를 불러올 수 없습니다<br><small>' + e.message + '</small></p></div>';
+  }
+}
+
+function buildCatChips() {
+  const cnt={};
+  D.forEach(d=>{ const c=d.category||'기타'; cnt[c]=(cnt[c]||0)+1; });
   const bar=document.getElementById('catBar');
-  Object.entries(cnt).sort((a,b)=>b[1]-a[1]).forEach(([c,n])=>{{
+  bar.innerHTML='<span class="chip on" data-c="all" onclick="setCat(\'all\')">전체</span>';
+  Object.entries(cnt).sort((a,b)=>b[1]-a[1]).forEach(([c,n])=>{
     const s=document.createElement('span');
     s.className='chip'; s.dataset.c=c;
-    s.innerHTML=`${{c}} <span class="cnt">${{n}}</span>`;
+    s.innerHTML=c+' <span class="cnt">'+n+'</span>';
     s.onclick=()=>setCat(c);
     bar.appendChild(s);
-  }});
-}}
+  });
+}
 
-function setCat(c){{
+function setCat(c) {
   curCat=c;
   document.querySelectorAll('.chip').forEach(x=>x.classList.toggle('on',x.dataset.c===c));
   render();
-}}
+}
 
-function setPlatform(p){{
+function setPlatform(p) {
   curPlat=p;
   document.querySelectorAll('.ptab').forEach(x=>x.classList.toggle('on',x.dataset.p===p));
   render();
-}}
+}
 
-function getFiltered(){{
+function getFiltered() {
   const q=document.getElementById('q').value.toLowerCase();
-  return D.filter(d=>{{
+  return D.filter(d=>{
     if(curCat!=='all'&&d.category!==curCat) return false;
     if(curPlat!=='all'&&d.influencer.platform!==curPlat) return false;
-    if(q){{
+    if(q){
       const t=[d.gonggu_info.product_name,d.gonggu_info.brand,d.influencer.name,d.influencer.handle,d.category]
         .join(' ').toLowerCase();
       if(!t.includes(q)) return false;
-    }}
+    }
     return true;
-  }});
-}}
+  });
+}
 
-function sorted(arr){{
+function sorted(arr) {
   const s=document.getElementById('sortSel').value;
-  return [...arr].sort((a,b)=>{{
-    switch(s){{
+  return [...arr].sort((a,b)=>{
+    switch(s){
       case 'latest':   return b.date.localeCompare(a.date);
       case 'discount': return parseInt(b.gonggu_info.discount)-parseInt(a.gonggu_info.discount);
-      case 'ending':   const o={{'오늘마감':0,'마감임박':1,'진행중':2,'오픈예정':3}};
+      case 'ending':   const o={'오늘마감':0,'마감임박':1,'진행중':2,'오픈예정':3};
                        return (o[a.gonggu_info.status]??4)-(o[b.gonggu_info.status]??4);
       case 'price_lo': return numPrice(a)-numPrice(b);
       case 'price_hi': return numPrice(b)-numPrice(a);
       default: return 0;
-    }}
-  }});
-}}
+    }
+  });
+}
 const numPrice=d=>parseInt((d.gonggu_info.price||'0').replace(/[^0-9]/g,''))||0;
 
-function render(){{
+function render() {
   const data=sorted(getFiltered());
-  document.getElementById('resCnt').textContent=`${{data.length}}건`;
+  document.getElementById('resCnt').textContent=data.length+'건';
   const grid=document.getElementById('grid');
-  if(!data.length){{
-    grid.innerHTML=`<div class="empty"><div class="ico">🔍</div><p>검색 결과가 없습니다</p></div>`;
+  if(!data.length){
+    grid.innerHTML='<div class="empty"><div class="ico">🔍</div><p>검색 결과가 없습니다</p></div>';
     return;
-  }}
-  grid.innerHTML=data.map(d=>{{
+  }
+  grid.innerHTML=data.map(d=>{
     const i=d.influencer, g=d.gonggu_info;
     const av=i.platform==='instagram'?'av-ig':'av-nb';
     const ic=i.platform==='instagram'?'📸':'📝';
-    return `<div class="card${{d.is_real?' real-card':''}}" onclick="openModal('${{d.uid}}')">
-      <div class="card-top">
-        <div class="inf-row">
-          <div class="avatar ${{av}}">${{i.name[0]}}</div>
-          <div>
-            <div class="inf-name">${{i.name}}</div>
-            <div class="inf-handle">${{ic}} @${{i.handle}} · ${{i.followers}}</div>
-          </div>
-        </div>
-        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px">
-          ${{d.is_real?'<span class="real-badge">✅ 실제 공구</span>':''}}
-          <span class="status st-${{g.status}}">${{g.status}}</span>
-        </div>
-      </div>
-      <div class="card-body">
-        ${{g.brand?`<div class="brand-tag">${{g.brand}}</div>`:''}}
-        <div class="prod-name">${{(g.product_name||d.title).replace(new RegExp('^'+g.brand+'\\\\s*'),'').trim()||g.product_name||d.title}}</div>
-        <div class="price-row">
-          <span class="price">${{g.price}}</span>
-          <span class="orig">${{g.original_price}}</span>
-          <span class="disc">${{g.discount}} OFF</span>
-        </div>
-      </div>
-      <div class="card-foot">
-        <span class="cat-tag">${{d.category}}</span>
-        <span>~${{g.period||''}} 마감</span>
-      </div>
-    </div>`;
-  }}).join('');
-}}
+    const nm=i.name||'?';
+    return '<div class="card real-card" onclick="openModal(\''+d.uid+'\')">'+
+      '<div class="card-top">'+
+        '<div class="inf-row">'+
+          '<div class="avatar '+av+'">'+nm[0]+'</div>'+
+          '<div>'+
+            '<div class="inf-name">'+nm+'</div>'+
+            '<div class="inf-handle">'+ic+' '+(i.handle?'@'+i.handle+' · ':'')+i.followers+'</div>'+
+          '</div>'+
+        '</div>'+
+        '<div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px">'+
+          '<span class="real-badge">✅ 실제 공구</span>'+
+          '<span class="status st-'+g.status+'">'+g.status+'</span>'+
+        '</div>'+
+      '</div>'+
+      '<div class="card-body">'+
+        (g.brand?'<div class="brand-tag">'+g.brand+'</div>':'')+
+        '<div class="prod-name">'+g.product_name+'</div>'+
+        '<div class="price-row">'+
+          '<span class="price">'+g.price+'</span>'+
+          '<span class="orig">'+g.original_price+'</span>'+
+          (parseInt(g.discount)>0?'<span class="disc">'+g.discount+' OFF</span>':'')+
+        '</div>'+
+      '</div>'+
+      '<div class="card-foot">'+
+        '<span class="cat-tag">'+d.category+'</span>'+
+        '<span>~'+(g.period||'')+' 마감</span>'+
+      '</div>'+
+    '</div>';
+  }).join('');
+}
 
-function openModal(uid){{
+function openModal(uid) {
   const d=D.find(x=>x.uid===uid); if(!d) return;
   const i=d.influencer, g=d.gonggu_info;
   const av=i.platform==='instagram'?'av-ig':'av-nb';
-  document.getElementById('modal').innerHTML=`
-    <div class="modal-head">
-      <h3>${{g.product_name||d.title}}</h3>
-      <button class="close-btn" onclick="closeModal()">×</button>
-    </div>
-    ${{d.is_real?'<div style="background:#E8F5E9;border-radius:10px;padding:.4rem .8rem;margin-bottom:.8rem;font-size:.8rem;color:#2E7D32;font-weight:700">✅ 직접 등록한 실제 공구 데이터입니다</div>':''}}
-    <div class="inf-card">
-      <div class="avatar ${{av}}" style="width:44px;height:44px">${{i.name[0]}}</div>
-      <div>
-        <div style="font-weight:800">${{i.name}}</div>
-        <div style="font-size:.78rem;color:#999">@${{i.handle}} · ${{i.followers}} 팔로워</div>
-      </div>
-    </div>
-    <div class="info-box">
-      <div class="info-row"><span>브랜드</span><span class="info-val">${{g.brand||'-'}}</span></div>
-      <div class="info-row"><span>공구가</span><span class="info-val" style="color:var(--pink);font-size:1.1rem">${{g.price}}</span></div>
-      <div class="info-row"><span>정가</span><span class="info-val" style="text-decoration:line-through;color:#aaa">${{g.original_price}}</span></div>
-      <div class="info-row"><span>할인율</span><span class="info-val" style="color:var(--pink)">${{g.discount}} OFF</span></div>
-      <div class="info-row"><span>마감일</span><span class="info-val">${{g.period||'-'}}</span></div>
-      <div class="info-row"><span>상태</span><span class="status st-${{g.status}}" style="padding:.2rem .6rem">${{g.status}}</span></div>
-    </div>
-    <a class="go-btn" href="${{d.link}}" target="_blank" rel="noopener">
-      ${{i.platform==='instagram'?'📸 인스타그램':'📝 블로그'}}에서 공구 보기 →
-    </a>
-  `;
+  document.getElementById('modal').innerHTML=
+    '<div class="modal-head">'+
+      '<h3>'+g.product_name+'</h3>'+
+      '<button class="close-btn" onclick="closeModal()">×</button>'+
+    '</div>'+
+    '<div style="background:#E8F5E9;border-radius:10px;padding:.4rem .8rem;margin-bottom:.8rem;font-size:.8rem;color:#2E7D32;font-weight:700">✅ 직접 등록한 실제 공구 데이터입니다</div>'+
+    '<div class="inf-card">'+
+      '<div class="avatar '+av+'" style="width:44px;height:44px">'+(i.name||'?')[0]+'</div>'+
+      '<div>'+
+        '<div style="font-weight:800">'+i.name+'</div>'+
+        '<div style="font-size:.78rem;color:#999">'+(i.handle?'@'+i.handle+' · ':'')+i.followers+'</div>'+
+      '</div>'+
+    '</div>'+
+    '<div class="info-box">'+
+      '<div class="info-row"><span>브랜드</span><span class="info-val">'+(g.brand||'-')+'</span></div>'+
+      '<div class="info-row"><span>공구가</span><span class="info-val" style="color:var(--pink);font-size:1.1rem">'+g.price+'</span></div>'+
+      '<div class="info-row"><span>정가</span><span class="info-val" style="text-decoration:line-through;color:#aaa">'+g.original_price+'</span></div>'+
+      '<div class="info-row"><span>할인율</span><span class="info-val" style="color:var(--pink)">'+g.discount+' OFF</span></div>'+
+      '<div class="info-row"><span>마감일</span><span class="info-val">'+(g.period||'-')+'</span></div>'+
+      '<div class="info-row"><span>상태</span><span class="status st-'+g.status+'" style="padding:.2rem .6rem">'+g.status+'</span></div>'+
+    '</div>'+
+    '<a class="go-btn" href="'+d.link+'" target="_blank" rel="noopener">'+
+      (i.platform==='instagram'?'📸 인스타그램':'📝 블로그')+'에서 공구 보기 →'+
+    '</a>';
   document.getElementById('ov').classList.add('show');
-}}
-function closeModal(e){{
+}
+function closeModal(e) {
   if(!e||e.target===e.currentTarget)
     document.getElementById('ov').classList.remove('show');
-}}
-document.addEventListener('keydown',e=>{{if(e.key==='Escape')closeModal()}});
-init();
+}
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal()});
+loadData();
 </script>
 </body>
 </html>"""
@@ -603,4 +666,4 @@ if __name__ == "__main__":
     latest.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
     print(f"✅ latest.json 저장")
 
-    build_html(data)
+    build_html()

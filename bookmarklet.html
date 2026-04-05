@@ -74,7 +74,7 @@
     </div>
     <div class="step">
       <div class="step-num">4</div>
-      <div><h3>정보 입력 후 저장</h3><p>인플루언서, 상품명, 가격, 마감일 입력 후 저장 클릭. 처음 한 번만 GitHub 토큰 입력이 필요합니다.</p></div>
+      <div><h3>플랫폼 선택 후 저장</h3><p>📸 인스타그램 또는 📝 블로그 탭 선택 → 인플루언서, 상품명, 가격, 마감일 입력 후 저장. 처음 한 번만 GitHub 토큰 입력이 필요합니다.</p></div>
     </div>
     <div class="step">
       <div class="step-num">5</div>
@@ -105,7 +105,8 @@
 (function() {
   var REPO = 'ky5070-code/gonggu-tracker';
 
-  var INFS = [
+  // 인스타그램 인플루언서
+  var INFS_I = [
     ['우니동동','@unidongdong','instagram','239K'],
     ['소을맘','@zzu_ni','instagram','136K'],
     ['제시맘','@likejinseo','instagram','80K'],
@@ -116,37 +117,50 @@
     ['꿀단지맘','@honey_momlog','instagram','58K'],
     ['달달이네','@daldal_home','instagram','52K'],
     ['도담맘','@dodam_momlife','instagram','48K'],
-    ['맀스클로젯','@moms_closet_kr','instagram','45K'],
-    ['꿀육아로그','@honey_ug_log','naver_blog','8K'],
-    ['알뜰살뜰맘','@save_mom_life','naver_blog','6K'],
+    ['맘스클로젯','@moms_closet_kr','instagram','45K'],
     ['기타(직접입력)','','instagram','']
+  ];
+
+  // 블로그 인플루언서
+  var INFS_B = [
+    ['꿀육아로그','@honey_ug_log','naver_blog','일방문 8천+'],
+    ['알뜰살뜰맘','@save_mom_life','naver_blog','일방문 6천+'],
+    ['초록이네육아','@green_baby_log','naver_blog','일방문 5천+'],
+    ['소나기맘','@sonagi_mama_kr','naver_blog','일방문 5천+'],
+    ['하루하나육아','@haru_one_mom','naver_blog','일방문 4천+'],
+    ['기타(직접입력)','','naver_blog','']
   ];
 
   var CATS = ['기저귀/위생','이유식/식품','수유/젖병','가구/인테리어','의류/패션','외출용품','스킨케어','장난감/교구','교육/도서','기타'];
 
-  // 북마크릿 함수를 문자열로 구성
   function buildBookmarklet() {
     var code = [
       '(function(){',
       '  if(document.getElementById("_gbt"))return document.getElementById("_gbt").remove();',
       '  var REPO="' + REPO + '";',
-      '  var INFS=' + JSON.stringify(INFS) + ';',
+      '  var INFS_I=' + JSON.stringify(INFS_I) + ';',
+      '  var INFS_B=' + JSON.stringify(INFS_B) + ';',
       '  var CATS=' + JSON.stringify(CATS) + ';',
+      '  var curPL="instagram";',
+      '  function buildInfOpts(p){var list=p==="instagram"?INFS_I:INFS_B;return list.map(function(i){return "<option value=\\""+i[0]+"|"+i[1]+"|"+i[2]+"|"+i[3]+"\\">"+i[0]+(i[1]?" "+i[1]:"")+"</option>";}).join("");}',
       '  var ov=document.createElement("div");',
       '  ov.id="_gbt";',
       '  ov.style.cssText="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.75);z-index:2147483647;display:flex;align-items:center;justify-content:center;font-family:-apple-system,sans-serif;";',
       '  var st=document.createElement("style");',
-      '  st.textContent="#_gbt *{box-sizing:border-box} #_gbt .bx{background:#fff;border-radius:20px;padding:28px;width:480px;max-width:95vw;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.35);position:relative} #_gbt h2{color:#FF6B9D;font-size:18px;margin:0 0 18px;text-align:center} #_gbt label{display:block;font-size:12px;color:#888;margin-bottom:4px;font-weight:600} #_gbt input,#_gbt select{width:100%;padding:9px 12px;border:2px solid #eee;border-radius:10px;font-size:14px;margin-bottom:12px;outline:none;font-family:inherit} #_gbt input:focus,#_gbt select:focus{border-color:#FF6B9D} #_gbt .row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px} #_gbt .row input,#_gbt .row select{margin-bottom:0} #_gbt .save{width:100%;padding:13px;background:linear-gradient(135deg,#FF6B9D,#FF8E53);color:#fff;border:none;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer;margin-top:4px} #_gbt .cls{position:absolute;top:14px;right:16px;background:none;border:none;font-size:22px;cursor:pointer;color:#ccc} #_gbt .rbadge{display:inline-block;background:#43A047;color:#fff;padding:2px 10px;border-radius:20px;font-size:12px;margin-bottom:14px} #_gbt .msg{text-align:center;margin-top:12px;font-size:13px;color:#555;line-height:1.7} #_gbt .msg a{color:#FF6B9D}";',
+      '  st.textContent="#_gbt *{box-sizing:border-box} #_gbt .bx{background:#fff;border-radius:20px;padding:28px;width:480px;max-width:95vw;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.35);position:relative} #_gbt h2{color:#FF6B9D;font-size:18px;margin:0 0 14px;text-align:center} #_gbt label{display:block;font-size:12px;color:#888;margin-bottom:4px;font-weight:600} #_gbt input,#_gbt select{width:100%;padding:9px 12px;border:2px solid #eee;border-radius:10px;font-size:14px;margin-bottom:12px;outline:none;font-family:inherit} #_gbt input:focus,#_gbt select:focus{border-color:#FF6B9D} #_gbt .row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px} #_gbt .row input,#_gbt .row select{margin-bottom:0} #_gbt .save{width:100%;padding:13px;background:linear-gradient(135deg,#FF6B9D,#FF8E53);color:#fff;border:none;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer;margin-top:4px} #_gbt .cls{position:absolute;top:14px;right:16px;background:none;border:none;font-size:22px;cursor:pointer;color:#ccc} #_gbt .rbadge{display:inline-block;background:#43A047;color:#fff;padding:2px 10px;border-radius:20px;font-size:12px;margin-bottom:12px} #_gbt .msg{text-align:center;margin-top:12px;font-size:13px;color:#555;line-height:1.7} #_gbt .msg a{color:#FF6B9D} #_gbt .pltab{display:flex;gap:8px;margin-bottom:16px} #_gbt .plbtn{flex:1;padding:9px;border:2px solid #eee;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;background:#fff;color:#888;transition:all .15s} #_gbt .plbtn.on{border-color:#FF6B9D;background:#FFF0F5;color:#FF6B9D}";',
       '  document.head.appendChild(st);',
       '  var today=new Date();',
       '  var defEnd=new Date(today.getTime()+7*86400000).toISOString().split("T")[0];',
-      '  var infOpts=INFS.map(function(i){return "<option value=\\""+i[0]+"|"+i[1]+"|"+i[2]+"|"+i[3]+"\\">"+i[0]+" "+i[1]+"</option>";}).join("");',
       '  var catOpts=CATS.map(function(c){return "<option>"+c+"</option>";}).join("");',
       '  var bx=document.createElement("div");',
       '  bx.className="bx";',
-      '  bx.innerHTML="<button class=\\"cls\\" id=\\"_gbtX\\">&#x2715;</button><h2>🍼 공구 추가하기</h2><span class=\\"rbadge\\">✅ 실제 공구로 등록됩니다</span><label>인플루언서</label><select id=\\"_gbtI\\">"+infOpts+"</select><div id=\\"_gbtC\\" style=\\"display:none\\"><label>인플루언서명</label><input id=\\"_gbtCN\\" placeholder=\\"예: 지은맘\\"/><label>@핸들</label><input id=\\"_gbtCH\\" placeholder=\\"예: @jieunmam\\" style=\\"margin-bottom:12px\\"/></div><label>브랜드</label><input id=\\"_gbtB\\" placeholder=\\"예: 하기스, 베베숲\\"/><label>상품명</label><input id=\\"_gbtP\\" placeholder=\\"예: 하이드로 물티슈 80매 x 10팩\\"/><div class=\\"row\\"><div><label>원가 (원)</label><input id=\\"_gbtO\\" type=\\"number\\" placeholder=\\"35000\\"/></div><div><label>공구가 (원)</label><input id=\\"_gbtS\\" type=\\"number\\" placeholder=\\"25000\\"/></div></div><div class=\\"row\\"><div><label>카테고리</label><select id=\\"_gbtCT\\">"+catOpts+"</select></div><div><label>마감일</label><input id=\\"_gbtE\\" type=\\"date\\" value=\\""+defEnd+"\\"/></div></div><label>공구 링크</label><input id=\\"_gbtL\\" value=\\""+location.href+"\\"/><button class=\\"save\\" id=\\"_gbtSV\\">💾 공구 저장하기</button><div class=\\"msg\\" id=\\"_gbtM\\"></div>";',
+      '  bx.innerHTML="<button class=\\"cls\\" id=\\"_gbtX\\">&#x2715;</button><h2>🍼 공구 추가하기</h2><span class=\\"rbadge\\">✅ 실제 공구로 등록됩니다</span><div class=\\"pltab\\"><button class=\\"plbtn on\\" id=\\"_gbtPLi\\">📸 인스타그램</button><button class=\\"plbtn\\" id=\\"_gbtPLb\\">📝 블로그</button></div><label>인플루언서</label><select id=\\"_gbtI\\"></select><div id=\\"_gbtC\\" style=\\"display:none\\"><label>인플루언서명</label><input id=\\"_gbtCN\\" placeholder=\\"예: 지은맘\\"/><label>@핸들 또는 블로그ID</label><input id=\\"_gbtCH\\" placeholder=\\"예: @jieunmam\\" style=\\"margin-bottom:12px\\"/></div><label>브랜드</label><input id=\\"_gbtB\\" placeholder=\\"예: 하기스, 베베숲\\"/><label>상품명</label><input id=\\"_gbtP\\" placeholder=\\"예: 하이드로 물티슈 80매 x 10팩\\"/><div class=\\"row\\"><div><label>원가 (원)</label><input id=\\"_gbtO\\" type=\\"number\\" placeholder=\\"35000\\"/></div><div><label>공구가 (원)</label><input id=\\"_gbtS\\" type=\\"number\\" placeholder=\\"25000\\"/></div></div><div class=\\"row\\"><div><label>카테고리</label><select id=\\"_gbtCT\\">"+catOpts+"</select></div><div><label>마감일</label><input id=\\"_gbtE\\" type=\\"date\\" value=\\""+defEnd+"\\"/></div></div><label>공구 링크</label><input id=\\"_gbtL\\" value=\\""+location.href+"\\"/><button class=\\"save\\" id=\\"_gbtSV\\">💾 공구 저장하기</button><div class=\\"msg\\" id=\\"_gbtM\\"></div>";',
       '  ov.appendChild(bx);',
       '  document.body.appendChild(ov);',
+      '  function swPL(p){curPL=p;document.getElementById("_gbtPLi").className="plbtn"+(p==="instagram"?" on":"");document.getElementById("_gbtPLb").className="plbtn"+(p==="naver_blog"?" on":"");document.getElementById("_gbtI").innerHTML=buildInfOpts(p);document.getElementById("_gbtC").style.display="none";}',
+      '  document.getElementById("_gbtPLi").onclick=function(){swPL("instagram");};',
+      '  document.getElementById("_gbtPLb").onclick=function(){swPL("naver_blog");};',
+      '  document.getElementById("_gbtI").innerHTML=buildInfOpts("instagram");',
       '  document.getElementById("_gbtX").onclick=function(){ov.remove()};',
       '  ov.onclick=function(e){if(e.target===ov)ov.remove()};',
       '  document.getElementById("_gbtI").onchange=function(){',
@@ -159,7 +173,7 @@
       '    var p=v.split("|");',
       '    var iName=isCust?document.getElementById("_gbtCN").value:p[0];',
       '    var iHandle=isCust?document.getElementById("_gbtCH").value:p[1];',
-      '    var iPlatform=isCust?"instagram":p[2];',
+      '    var iPlatform=isCust?curPL:p[2];',
       '    var iFollowers=isCust?"":p[3];',
       '    var brand=document.getElementById("_gbtB").value.trim();',
       '    var prod=document.getElementById("_gbtP").value.trim();',

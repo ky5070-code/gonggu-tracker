@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>공구 추가</title>
+
+<!-- PWA 홈 화면 설정 -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="공구추가">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#667eea">
+
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  body { font-family: -apple-system, 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif; background: #f0f2ff; color: #222; min-height: 100vh; padding-bottom: 100px; }
+
+  /* 헤더 */
+  .header { background: linear-gradient(135deg, #667eea, #764ba2); color: white; padding: 20px 20px 16px; position: sticky; top: 0; z-index: 10; }
+  .header-top { display: flex; align-items: center; justify-content: space-between; }
+  .header h1 { font-size: 20px; font-weight: 700; }
+  .header p { font-size: 13px; opacity: 0.8; margin-top: 4px; }
+  .btn-setting { background: rgba(255,255,255,0.2); border: none; color: white; width: 36px; height: 36px; border-radius: 50%; font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+
+  /* 토큰 설정 화면 */
+  #setupScreen { padding: 24px 20px; }
+  .setup-box { background: white; border-radius: 20px; padding: 28px 24px; box-shadow: 0 4px 20px rgba(102,126,234,0.15); }
+  .setup-box .icon { font-size: 44px; text-align: center; margin-bottom: 14px; }
+  .setup-box h2 { font-size: 18px; font-weight: 700; text-align: center; margin-bottom: 8px; }
+  .setup-box p { font-size: 13px; color: #888; text-align: center; line-height: 1.6; margin-bottom: 20px; }
+  .input-label { font-size: 13px; font-weight: 600; color: #555; margin-bottom: 6px; display: block; }
+  .input-field { width: 100%; padding: 14px 16px; border: 2px solid #e8e8e8; border-radius: 12px; font-size: 14px; font-family: monospace; outline: none; transition: border-color 0.2s; background: #fafafa; }
+  .input-field:focus { border-color: #667eea; background: white; }
+  .setup-error { color: #e74c3c; font-size: 13px; text-align: center; margin-top: 10px; display: none; }
+
+  /* 메인 폼 */
+  #mainScreen { display: none; padding: 16px 20px; }
+
+  /* 플랫폼 토글 */
+  .pl-toggle { display: flex; background: white; border-radius: 14px; padding: 4px; box-shadow: 0 2px 12px rgba(0,0,0,0.08); margin-bottom: 16px; }
+  .pl-btn { flex: 1; padding: 12px; border: none; background: none; font-size: 15px; font-weight: 600; color: #aaa; border-radius: 10px; cursor: pointer; transition: all 0.2s; }
+  .pl-btn.on { background: linear-gradient(135deg, #667eea, #764ba2); color: white; box-shadow: 0 2px 8px rgba(102,126,234,0.4); }
+
+  /* 섹션 카드 */
+  .section { background: white; border-radius: 16px; padding: 18px; margin-bottom: 14px; box-shadow: 0 2px 12px rgba(0,0,0,0.06); }
+  .section-title { font-size: 13px; font-weight: 700; color: #667eea; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 14px; display: flex; align-items: center; gap: 6px; }
+
+  /* 폼 필드 */
+  .field { margin-bottom: 14px; }
+  .field:last-child { margin-bottom: 0; }
+  .field label { font-size: 13px; font-weight: 600; color: #555; margin-bottom: 6px; display: block; }
+  .field input, .field select, .field textarea {
+    width: 100%; padding: 13px 14px; border: 1.5px solid #ebebeb; border-radius: 12px;
+    font-size: 15px; font-family: inherit; outline: none; transition: border-color 0.2s;
+    background: #fafafa; color: #222; appearance: none; -webkit-appearance: none;
+  }
+  .field input:focus, .field select:focus, .field textarea:focus { border-color: #667eea; background: white; }
+  .field textarea { resize: none; height: 72px; line-height: 1.5; }
+  .field select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23999' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 14px center; padding-right: 36px; }
+
+  /* URL 입력 + 붙여넣기 버튼 */
+  .url-row { display: flex; gap: 8px; }
+  .url-row input { flex: 1; }
+  .btn-paste { padding: 13px 14px; background: #f0f2ff; color: #667eea; border: 1.5px solid #d0d8ff; border-radius: 12px; font-size: 13px; font-weight: 600; cursor: pointer; white-space: nowrap; flex-shrink: 0; }
+  .btn-paste:active { background: #667eea; color: white; }
+
+  /* 가격 행 */
+  .price-row { display: flex; gap: 10px; }
+  .price-row .field { flex: 1; }
+
+  /* 커스텀 인플루언서 입력 */
+  #customInfArea { display: none; margin-top: 10px; }
+
+  /* 제출 버튼 */
+  .submit-area { position: fixed; bottom: 0; left: 0; right: 0; padding: 12px 20px 28px; background: white; box-shadow: 0 -4px 20px rgba(0,0,0,0.08); }
+  .btn-submit { width: 100%; padding: 17px; background: linear-gradient(135deg, #667eea, #764ba2); color: white; border: none; border-radius: 14px; font-size: 17px; font-weight: 700; cursor: pointer; letter-spacing: 0.5px; transition: opacity 0.2s; }
+  .btn-submit:active { opacity: 0.85; }
+  .btn-submit:disabled { opacity: 0.5; }
+
+  /* 완료 화면 */
+  #doneScreen { display: none; padding: 40px 20px; text-align: center; }
+  .done-box { background: white; border-radius: 20px; padding: 36px 24px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
+  .done-box .icon { font-size: 56px; margin-bottom: 16px; }
+  .done-box h2 { font-size: 20px; font-weight: 700; margin-bottom: 8px; }
+  .done-box p { color: #888; font-size: 14px; line-height: 1.6; margin-bottom: 24px; }
+  .btn-another { width: 100%; padding: 15px; background: linear-gradient(135deg, #667eea, #764ba2); color: white; border: none; border-radius: 14px; font-size: 16px; font-weight: 700; cursor: pointer; margin-bottom: 10px; }
+  .btn-site { width: 100%; padding: 15px; background: #f5f5f5; color: #555; border: none; border-radius: 14px; font-size: 16px; font-weight: 600; cursor: pointer; text-decoration: none; display: block; }
+
+  /* 로딩 스피너 */
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .spin { display: inline-block; width: 18px; height: 18px; border: 2px solid rgba(255,255,255,0.4); border-top-color: white; border-radius: 50%; animation: spin 0.7s linear infinite; vertical-align: middle; margin-right: 6px; }
+
+  /* 설정 시트 */
+  .sheet-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 100; }
+  .sheet-overlay.show { display: block; }
+  .sheet { position: fixed; bottom: 0; left: 0; right: 0; background: white; border-radius: 24px 24px 0 0; padding: 24px 20px 40px; z-index: 101; transform: translateY(100%); transition: transform 0.3s ease; }
+  .sheet.show { transform: translateY(0); }
+  .sheet h3 { font-size: 16px; font-weight: 700; margin-bottom: 16px; }
+  .sheet-handle { width: 36px; height: 4px; background: #e0e0e0; border-radius: 2px; margin: 0 auto 20px; }
+  .btn-sheet-save { width: 100%; padding: 15px; background: #667eea; color: white; border: none; border-radius: 12px; font-size: 16px; font-weight: 700; cursor: pointer; margin-top: 12px; }
+  .btn-sheet-logout { width: 100%; padding: 13px; background: #fff0f0; color: #e74c3c; border: 1.5px solid #ffd0d0; border-radius: 12px; font-size: 15px; font-weight: 600; cursor: pointer; margin-top: 8px; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-top">
+    <div>
+      <h1>🛍️ 공구 추가</h1>
+      <p>발견한 공구를 바로 등록하세요</p>
+    </div>
+    <button class="btn-setting" onclick="openSheet()" title="설정">⚙️</button>
+  </div>
+</div>
+
+<!-- 토큰 설정 화면 -->
+<div id="setupScreen">
+  <div class="setup-box">
+    <div class="icon">🔑</div>
+    <h2>처음 설정</h2>
+    <p>홈 화면에 추가해서 앱처럼 사용하세요.<br>GitHub 토큰을 한 번만 입력하면 됩니다.</p>
+    <label class="input-label">GitHub Token</label>
+    <input class="input-field" type="password" id="setupToken" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx" autocomplete="off" />
+    <div class="setup-error" id="setupError">❌ 토큰을 확인해주세요.</div>
+    <button onclick="saveToken()" style="width:100%;margin-top:14px;padding:15px;background:linear-gradient(135deg,#667eea,#764ba2);color:white;border:none;border-radius:12px;font-size:16px;font-weight:700;cursor:pointer;">저장하고 시작</button>
+  </div>
+</div>
+
+<!-- 메인 폼 -->
+<div id="mainScreen">
+
+  <!-- 플랫폼 토글 -->
+  <div class="pl-toggle">
+    <button class="pl-btn on" id="btnPLi" onclick="setPL('instagram')">📸 인스타그램</button>
+    <button class="pl-btn" id="btnPLb" onclick="setPL('naver_blog')">📝 블로그</button>
+  </div>
+
+  <!-- 인플루언서 -->
+  <div class="section">
+    <div class="section-title">👤 인플루언서</div>
+    <div class="field">
+      <label>이름 선택</label>
+      <select id="selInf" onchange="onInfChange()"></select>
+    </div>
+    <div id="customInfArea">
+      <div class="field">
+        <label>인플루언서 이름</label>
+        <input type="text" id="custName" placeholder="예: 하늘맘" />
+      </div>
+      <div class="field">
+        <label>아이디 (선택)</label>
+        <input type="text" id="custHandle" placeholder="예: @sky_mom" />
+      </div>
+    </div>
+  </div>
+
+  <!-- 상품 정보 -->
+  <div class="section">
+    <div class="section-title">📦 상품 정보</div>
+    <div class="field">
+      <label>브랜드</label>
+      <input type="text" id="fBrand" placeholder="예: 하기스, 에르고베이비" />
+    </div>
+    <div class="field">
+      <label>상품명</label>
+      <input type="text" id="fProduct" placeholder="예: 네이처메이드 기저귀 L 4팩" />
+    </div>
+    <div class="field">
+      <label>카테고리</label>
+      <select id="fCat">
+        <option value="">카테고리 선택</option>
+        <option>기저귀/위생</option>
+        <option>분유/이유식</option>
+        <option>의류/패션</option>
+        <option>장난감/놀이</option>
+        <option>유아가구/침구</option>
+        <option>스킨케어/목욕</option>
+        <option>유모차/카시트</option>
+        <option>수유용품</option>
+        <option>교육/책</option>
+        <option>식품/간식</option>
+        <option>기타</option>
+      </select>
+    </div>
+    <div class="price-row">
+      <div class="field">
+        <label>정가 (원)</label>
+        <input type="number" id="fOrigPrice" placeholder="0" inputmode="numeric" />
+      </div>
+      <div class="field">
+        <label>공구가 (원)</label>
+        <input type="number" id="fSalePrice" placeholder="0" inputmode="numeric" />
+      </div>
+    </div>
+  </div>
+
+  <!-- 공구 정보 -->
+  <div class="section">
+    <div class="section-title">📅 공구 정보</div>
+    <div class="field">
+      <label>상태</label>
+      <select id="fStatus">
+        <option value="진행중">진행중</option>
+        <option value="예정">예정</option>
+        <option value="종료">종료</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>마감일</label>
+      <input type="date" id="fEndDate" />
+    </div>
+    <div class="field">
+      <label>공구 링크 URL</label>
+      <div class="url-row">
+        <input type="url" id="fLink" placeholder="https://..." inputmode="url" />
+        <button class="btn-paste" onclick="pasteURL()">📋 붙여넣기</button>
+      </div>
+    </div>
+    <div class="field">
+      <label>메모 (선택)</label>
+      <textarea id="fDesc" placeholder="추가 정보나 메모..."></textarea>
+    </div>
+  </div>
+
+  <div style="height: 80px;"></div>
+</div>
+
+<!-- 완료 화면 -->
+<div id="doneScreen">
+  <div class="done-box">
+    <div class="icon">🎉</div>
+    <h2>등록 완료!</h2>
+    <p>공구가 성공적으로 추가됐어요.<br>사이트에서 바로 확인할 수 있어요.</p>
+    <button class="btn-another" onclick="resetForm()">➕ 또 추가하기</button>
+    <a class="btn-site" href="https://ky5070-code.github.io/gonggu-tracker/" target="_blank">🌐 사이트 보기</a>
+  </div>
+</div>
+
+<!-- 제출 버튼 -->
+<div class="submit-area" id="submitArea">
+  <button class="btn-submit" id="btnSubmit" onclick="submitForm()">✅ 공구 등록</button>
+</div>
+
+<!-- 설정 시트 -->
+<div class="sheet-overlay" id="sheetOverlay" onclick="closeSheet()"></div>
+<div class="sheet" id="settingSheet">
+  <div class="sheet-handle"></div>
+  <h3>⚙️ 설정</h3>
+  <label class="input-label">GitHub Token 변경</label>
+  <input class="input-field" type="password" id="sheetToken" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx" autocomplete="off" />
+  <button class="btn-sheet-save" onclick="updateToken()">저장</button>
+  <button class="btn-sheet-logout" onclick="clearToken()">토큰 초기화</button>
+</div>
+
+<script>
+const OWNER = 'ky5070-code';
+const REPO  = 'gonggu-tracker';
+const FILE  = 'data/real_gonggu.json';
+
+const INFS_I = [
+  ['우니동동','@unidongdong','instagram','239K'],
+  ['소을맘','@zzu_ni','instagram','136K'],
+  ['제시맘','@likejinseo','instagram','80K'],
+  ['일리맘','@ily__diary','instagram','70K'],
+  ['showme공구','@showme_09','instagram','65K'],
+  ['사랑댁','@peach0724s2','instagram','94K'],
+  ['메이민맘','@may__miin','instagram','65K'],
+  ['꿀단지맘','@honey_momlog','instagram','58K'],
+  ['달달이네','@daldal_home','instagram','52K'],
+  ['도담맘','@dodam_momlife','instagram','48K'],
+  ['맘스클로젯','@moms_closet_kr','instagram','45K'],
+  ['기타(직접입력)','','instagram','']
+];
+const INFS_B = [
+  ['꿀육아로그','@honey_ug_log','naver_blog','일방문 8천+'],
+  ['알뜰살뜰맘','@save_mom_life','naver_blog','일방문 6천+'],
+  ['초록이네육아','@green_baby_log','naver_blog','일방문 5천+'],
+  ['소나기맘','@sonagi_mama_kr','naver_blog','일방문 5천+'],
+  ['하루하나육아','@haru_one_mom','naver_blog','일방문 4천+'],
+  ['기타(직접입력)','','naver_blog','']
+];
+
+let curPL = 'instagram';
+let TOKEN = '';
+
+// ── 초기화 ─────────────────────────────
+window.onload = function() {
+  TOKEN = localStorage.getItem('gonggu_token') || '';
+  if (TOKEN) {
+    showMain();
+  } else {
+    document.getElementById('setupScreen').style.display = 'block';
+  }
+  buildInfOpts('instagram');
+
+  // 오늘 날짜 기본값
+  const today = new Date();
+  const d = today.toISOString().split('T')[0];
+  document.getElementById('fEndDate').value = d;
+};
+
+// ── 토큰 설정 ──────────────────────────
+async function saveToken() {
+  const t = document.getElementById('setupToken').value.trim();
+  if (!t) return;
+  const btn = document.querySelector('#setupScreen button');
+  btn.textContent = '확인 중...';
+  try {
+    const r = await fetch(`https://api.github.com/repos/${OWNER}/${REPO}`, {
+      headers: { Authorization: 'token ' + t }
+    });
+    if (!r.ok) throw new Error();
+    TOKEN = t;
+    localStorage.setItem('gonggu_token', t);
+    showMain();
+  } catch(e) {
+    document.getElementById('setupError').style.display = 'block';
+    btn.textContent = '저장하고 시작';
+  }
+}
+
+function showMain() {
+  document.getElementById('setupScreen').style.display = 'none';
+  document.getElementById('mainScreen').style.display = 'block';
+  document.getElementById('submitArea').style.display = 'block';
+}
+
+// ── 설정 시트 ──────────────────────────
+function openSheet() {
+  document.getElementById('sheetToken').value = TOKEN ? TOKEN.slice(0,8)+'...' : '';
+  document.getElementById('sheetOverlay').classList.add('show');
+  document.getElementById('settingSheet').classList.add('show');
+}
+function closeSheet() {
+  document.getElementById('sheetOverlay').classList.remove('show');
+  document.getElementById('settingSheet').classList.remove('show');
+}
+async function updateToken() {
+  const t = document.getElementById('sheetToken').value.trim();
+  if (!t || t.includes('...')) { closeSheet(); return; }
+  TOKEN = t;
+  localStorage.setItem('gonggu_token', t);
+  closeSheet();
+  alert('토큰이 저장됐어요!');
+}
+function clearToken() {
+  if (!confirm('토큰을 초기화할까요?')) return;
+  TOKEN = '';
+  localStorage.removeItem('gonggu_token');
+  closeSheet();
+  location.reload();
+}
+
+// ── 플랫폼 토글 ────────────────────────
+function setPL(p) {
+  curPL = p;
+  document.getElementById('btnPLi').className = 'pl-btn' + (p==='instagram' ? ' on' : '');
+  document.getElementById('btnPLb').className = 'pl-btn' + (p==='naver_blog' ? ' on' : '');
+  buildInfOpts(p);
+}
+
+function buildInfOpts(p) {
+  const list = p === 'instagram' ? INFS_I : INFS_B;
+  const sel = document.getElementById('selInf');
+  sel.innerHTML = list.map(i =>
+    `<option value="${i[0]}|${i[1]}|${i[2]}|${i[3]}">${i[0]}${i[1] ? ' '+i[1] : ''}</option>`
+  ).join('');
+  onInfChange();
+}
+
+function onInfChange() {
+  const val = document.getElementById('selInf').value;
+  const isCust = val.startsWith('기타');
+  document.getElementById('customInfArea').style.display = isCust ? 'block' : 'none';
+}
+
+// ── URL 붙여넣기 ───────────────────────
+async function pasteURL() {
+  try {
+    const text = await navigator.clipboard.readText();
+    if (text.startsWith('http')) {
+      document.getElementById('fLink').value = text;
+    }
+  } catch(e) {
+    document.getElementById('fLink').focus();
+  }
+}
+
+// ── 폼 제출 ────────────────────────────
+async function submitForm() {
+  const btn = document.getElementById('btnSubmit');
+
+  // 필수값 체크
+  const brand   = document.getElementById('fBrand').value.trim();
+  const product = document.getElementById('fProduct').value.trim();
+  const link    = document.getElementById('fLink').value.trim();
+  if (!product) { alert('상품명을 입력해주세요.'); return; }
+  if (!link)    { alert('공구 링크를 입력해주세요.'); return; }
+
+  // 인플루언서 정보
+  const selVal = document.getElementById('selInf').value;
+  const isCust = selVal.startsWith('기타');
+  let infName, infHandle, infFollowers;
+  if (isCust) {
+    infName     = document.getElementById('custName').value.trim() || '기타';
+    infHandle   = document.getElementById('custHandle').value.trim();
+    infFollowers = '';
+  } else {
+    const p = selVal.split('|');
+    infName = p[0]; infHandle = p[1]; infFollowers = p[3];
+  }
+
+  const origPrice = parseInt(document.getElementById('fOrigPrice').value) || 0;
+  const salePrice = parseInt(document.getElementById('fSalePrice').value) || origPrice;
+  const discount  = origPrice > 0 ? Math.round((1 - salePrice/origPrice)*100) : 0;
+
+  const entry = {
+    id: 'real_' + Date.now(),
+    influencer: infName,
+    handle: infHandle,
+    platform: isCust ? curPL : selVal.split('|')[2],
+    followers: infFollowers,
+    category: document.getElementById('fCat').value || '기타',
+    brand: brand,
+    product_name: product,
+    original_price: origPrice,
+    sale_price: salePrice,
+    discount_rate: discount,
+    status: document.getElementById('fStatus').value,
+    end_date: document.getElementById('fEndDate').value,
+    link: link,
+    description: document.getElementById('fDesc').value.trim(),
+    created_at: new Date().toISOString().split('T')[0],
+    is_real: true
+  };
+
+  // 버튼 로딩
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spin"></span>저장 중...';
+
+  try {
+    // 현재 파일 가져오기
+    const r = await fetch(`https://api.github.com/repos/${OWNER}/${REPO}/contents/${FILE}`, {
+      headers: { Authorization: 'token ' + TOKEN }
+    });
+    const meta = await r.json();
+    const b64 = meta.content.replace(/\n/g,'');
+    const bin = atob(b64);
+    const bytes = new Uint8Array(bin.length);
+    for (let i=0; i<bin.length; i++) bytes[i] = bin.charCodeAt(i);
+    const currentData = JSON.parse(new TextDecoder('utf-8').decode(bytes));
+
+    currentData.push(entry);
+    const newContent = btoa(unescape(encodeURIComponent(JSON.stringify(currentData, null, 2))));
+
+    const put = await fetch(`https://api.github.com/repos/${OWNER}/${REPO}/contents/${FILE}`, {
+      method: 'PUT',
+      headers: { Authorization: 'token ' + TOKEN, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        message: `✅ 공구 추가: ${infName} - ${product}`,
+        content: newContent,
+        sha: meta.sha
+      })
+    });
+
+    if (!put.ok) throw new Error('저장 실패');
+
+    // 완료 화면
+    document.getElementById('mainScreen').style.display = 'none';
+    document.getElementById('submitArea').style.display = 'none';
+    document.getElementById('doneScreen').style.display = 'block';
+
+  } catch(e) {
+    alert('오류가 발생했습니다: ' + e.message);
+    btn.disabled = false;
+    btn.innerHTML = '✅ 공구 등록';
+  }
+}
+
+// ── 폼 초기화 ──────────────────────────
+function resetForm() {
+  document.getElementById('fBrand').value = '';
+  document.getElementById('fProduct').value = '';
+  document.getElementById('fCat').value = '';
+  document.getElementById('fOrigPrice').value = '';
+  document.getElementById('fSalePrice').value = '';
+  document.getElementById('fLink').value = '';
+  document.getElementById('fDesc').value = '';
+  document.getElementById('fStatus').value = '진행중';
+  document.getElementById('custName').value = '';
+  document.getElementById('custHandle').value = '';
+  document.getElementById('btnSubmit').disabled = false;
+  document.getElementById('btnSubmit').innerHTML = '✅ 공구 등록';
+  setPL('instagram');
+
+  const today = new Date().toISOString().split('T')[0];
+  document.getElementById('fEndDate').value = today;
+
+  document.getElementById('doneScreen').style.display = 'none';
+  document.getElementById('mainScreen').style.display = 'block';
+  document.getElementById('submitArea').style.display = 'block';
+  window.scrollTo(0, 0);
+}
+</script>
+</body>
+</html>

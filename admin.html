@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>공구 관리자 페이지</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, 'Apple SD Gothic Neo', sans-serif; background: #f5f5f5; color: #333; }
+
+  /* 헤더 */
+  .header { background: #1a1a2e; color: white; padding: 16px 24px; display: flex; align-items: center; gap: 12px; }
+  .header h1 { font-size: 18px; font-weight: 700; }
+  .header .badge { background: #e74c3c; color: white; font-size: 11px; padding: 2px 8px; border-radius: 10px; font-weight: 600; }
+
+  /* 토큰 입력 화면 */
+  #authScreen { display: flex; align-items: center; justify-content: center; min-height: calc(100vh - 56px); }
+  .auth-box { background: white; border-radius: 16px; padding: 40px; width: 100%; max-width: 420px; box-shadow: 0 4px 24px rgba(0,0,0,0.1); text-align: center; }
+  .auth-box .icon { font-size: 48px; margin-bottom: 16px; }
+  .auth-box h2 { font-size: 20px; margin-bottom: 8px; }
+  .auth-box p { color: #888; font-size: 14px; margin-bottom: 24px; line-height: 1.6; }
+  .auth-box input { width: 100%; padding: 12px 16px; border: 2px solid #e0e0e0; border-radius: 10px; font-size: 14px; font-family: monospace; margin-bottom: 12px; outline: none; transition: border-color 0.2s; }
+  .auth-box input:focus { border-color: #667eea; }
+  .auth-box button { width: 100%; padding: 14px; background: #667eea; color: white; border: none; border-radius: 10px; font-size: 15px; font-weight: 600; cursor: pointer; transition: background 0.2s; }
+  .auth-box button:hover { background: #5a67d8; }
+  .auth-error { color: #e74c3c; font-size: 13px; margin-top: 8px; display: none; }
+
+  /* 메인 화면 */
+  #mainScreen { display: none; padding: 24px; max-width: 900px; margin: 0 auto; }
+
+  /* 상단 요약 */
+  .summary { display: flex; gap: 12px; margin-bottom: 24px; flex-wrap: wrap; }
+  .stat-card { background: white; border-radius: 12px; padding: 16px 20px; flex: 1; min-width: 120px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+  .stat-card .num { font-size: 28px; font-weight: 700; color: #667eea; }
+  .stat-card .lbl { font-size: 12px; color: #888; margin-top: 4px; }
+
+  /* 필터 바 */
+  .toolbar { background: white; border-radius: 12px; padding: 16px 20px; margin-bottom: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+  .toolbar select, .toolbar input { padding: 8px 12px; border: 1.5px solid #e0e0e0; border-radius: 8px; font-size: 13px; outline: none; }
+  .toolbar select:focus, .toolbar input:focus { border-color: #667eea; }
+  .toolbar .spacer { flex: 1; }
+  .btn-logout { padding: 8px 14px; background: #f8f8f8; border: 1.5px solid #e0e0e0; border-radius: 8px; font-size: 13px; cursor: pointer; color: #666; }
+  .btn-logout:hover { background: #eee; }
+
+  /* 카드 목록 */
+  .entry-list { display: flex; flex-direction: column; gap: 12px; }
+  .entry-card { background: white; border-radius: 12px; padding: 18px 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); display: flex; gap: 16px; align-items: flex-start; transition: box-shadow 0.2s; }
+  .entry-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.1); }
+  .entry-card.deleting { opacity: 0.4; pointer-events: none; }
+
+  .platform-icon { width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0; }
+  .platform-icon.instagram { background: linear-gradient(135deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888); }
+  .platform-icon.naver_blog { background: #03c75a; }
+
+  .entry-info { flex: 1; min-width: 0; }
+  .entry-top { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 6px; }
+  .entry-name { font-weight: 700; font-size: 15px; }
+  .entry-handle { color: #888; font-size: 13px; }
+  .badge-status { font-size: 11px; padding: 2px 8px; border-radius: 10px; font-weight: 600; }
+  .badge-status.진행중 { background: #e8f5e9; color: #2e7d32; }
+  .badge-status.종료 { background: #fce4ec; color: #c62828; }
+  .badge-status.예정 { background: #e3f2fd; color: #1565c0; }
+
+  .entry-product { font-size: 14px; color: #555; margin-bottom: 4px; }
+  .entry-product strong { color: #333; }
+  .entry-meta { display: flex; gap: 12px; flex-wrap: wrap; }
+  .entry-meta span { font-size: 12px; color: #888; }
+  .entry-meta .price { color: #e74c3c; font-weight: 600; font-size: 13px; }
+
+  .entry-actions { display: flex; flex-direction: column; gap: 8px; align-items: flex-end; flex-shrink: 0; }
+  .btn-del { padding: 8px 14px; background: #fff0f0; color: #e74c3c; border: 1.5px solid #ffd0d0; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.2s; white-space: nowrap; }
+  .btn-del:hover { background: #e74c3c; color: white; border-color: #e74c3c; }
+  .btn-link { padding: 8px 14px; background: #f0f4ff; color: #667eea; border: 1.5px solid #c5d0ff; border-radius: 8px; font-size: 13px; cursor: pointer; text-decoration: none; white-space: nowrap; display: inline-block; text-align: center; }
+  .btn-link:hover { background: #667eea; color: white; border-color: #667eea; }
+
+  /* 빈 상태 */
+  .empty { text-align: center; padding: 60px 20px; color: #aaa; }
+  .empty .icon { font-size: 48px; margin-bottom: 12px; }
+
+  /* 확인 모달 */
+  .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 999; align-items: center; justify-content: center; }
+  .modal-overlay.show { display: flex; }
+  .modal { background: white; border-radius: 16px; padding: 32px; width: 100%; max-width: 380px; box-shadow: 0 8px 40px rgba(0,0,0,0.2); }
+  .modal h3 { font-size: 18px; margin-bottom: 8px; }
+  .modal p { color: #666; font-size: 14px; line-height: 1.6; margin-bottom: 20px; }
+  .modal .product-preview { background: #f8f8f8; border-radius: 8px; padding: 12px; font-size: 13px; color: #444; margin-bottom: 20px; }
+  .modal-btns { display: flex; gap: 10px; }
+  .modal-btns button { flex: 1; padding: 12px; border-radius: 10px; font-size: 14px; font-weight: 600; cursor: pointer; border: none; }
+  .btn-cancel-m { background: #f0f0f0; color: #555; }
+  .btn-cancel-m:hover { background: #e0e0e0; }
+  .btn-confirm-m { background: #e74c3c; color: white; }
+  .btn-confirm-m:hover { background: #c0392b; }
+
+  /* 로딩 */
+  .loading { text-align: center; padding: 40px; color: #888; }
+  .spinner { display: inline-block; width: 32px; height: 32px; border: 3px solid #e0e0e0; border-top-color: #667eea; border-radius: 50%; animation: spin 0.8s linear infinite; margin-bottom: 12px; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* 토스트 */
+  .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: #333; color: white; padding: 12px 24px; border-radius: 24px; font-size: 14px; z-index: 9999; opacity: 0; transition: opacity 0.3s; pointer-events: none; }
+  .toast.show { opacity: 1; }
+  .toast.success { background: #27ae60; }
+  .toast.error { background: #e74c3c; }
+
+  @media (max-width: 600px) {
+    #mainScreen { padding: 16px; }
+    .entry-card { flex-wrap: wrap; }
+    .entry-actions { flex-direction: row; width: 100%; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <span>🔒</span>
+  <h1>공구 관리자</h1>
+  <span class="badge">ADMIN</span>
+</div>
+
+<!-- 인증 화면 -->
+<div id="authScreen">
+  <div class="auth-box">
+    <div class="icon">🔑</div>
+    <h2>관리자 로그인</h2>
+    <p>GitHub Personal Access Token을 입력하세요.<br>repo 권한이 있는 토큰이 필요합니다.</p>
+    <input type="password" id="tokenInput" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx" autocomplete="off" />
+    <button onclick="doLogin()">로그인</button>
+    <div class="auth-error" id="authError">❌ 토큰이 올바르지 않거나 권한이 없습니다.</div>
+  </div>
+</div>
+
+<!-- 메인 화면 -->
+<div id="mainScreen">
+  <div class="summary">
+    <div class="stat-card"><div class="num" id="statTotal">-</div><div class="lbl">전체 공구</div></div>
+    <div class="stat-card"><div class="num" id="statActive">-</div><div class="lbl">진행중</div></div>
+    <div class="stat-card"><div class="num" id="statInsta">-</div><div class="lbl">인스타그램</div></div>
+    <div class="stat-card"><div class="num" id="statBlog">-</div><div class="lbl">블로그</div></div>
+  </div>
+
+  <div class="toolbar">
+    <select id="filterPlatform" onchange="renderList()">
+      <option value="">전체 플랫폼</option>
+      <option value="instagram">📸 인스타그램</option>
+      <option value="naver_blog">📝 블로그</option>
+    </select>
+    <select id="filterStatus" onchange="renderList()">
+      <option value="">전체 상태</option>
+      <option value="진행중">진행중</option>
+      <option value="종료">종료</option>
+      <option value="예정">예정</option>
+    </select>
+    <input type="text" id="filterSearch" placeholder="상품명 / 인플루언서 검색..." oninput="renderList()" style="min-width:180px;" />
+    <div class="spacer"></div>
+    <button class="btn-logout" onclick="doLogout()">🚪 로그아웃</button>
+  </div>
+
+  <div id="listArea">
+    <div class="loading"><div class="spinner"></div><br>데이터 불러오는 중...</div>
+  </div>
+</div>
+
+<!-- 삭제 확인 모달 -->
+<div class="modal-overlay" id="confirmModal">
+  <div class="modal">
+    <h3>🗑️ 공구 삭제</h3>
+    <p>아래 항목을 삭제하시겠습니까?<br>삭제 후에는 복구할 수 없습니다.</p>
+    <div class="product-preview" id="modalPreview"></div>
+    <div class="modal-btns">
+      <button class="btn-cancel-m" onclick="closeModal()">취소</button>
+      <button class="btn-confirm-m" onclick="confirmDelete()">삭제</button>
+    </div>
+  </div>
+</div>
+
+<!-- 토스트 -->
+<div class="toast" id="toast"></div>
+
+<script>
+const OWNER = 'ky5070-code';
+const REPO  = 'gonggu-tracker';
+const FILE  = 'data/real_gonggu.json';
+
+let TOKEN = '';
+let allData = [];
+let pendingDeleteId = null;
+
+// ── 인증 ──────────────────────────────
+async function doLogin() {
+  const t = document.getElementById('tokenInput').value.trim();
+  if (!t) return;
+  document.querySelector('#authScreen button').textContent = '확인 중...';
+  try {
+    const r = await fetch(`https://api.github.com/repos/${OWNER}/${REPO}`, {
+      headers: { Authorization: 'token ' + t }
+    });
+    if (!r.ok) throw new Error('auth fail');
+    TOKEN = t;
+    document.getElementById('authScreen').style.display = 'none';
+    document.getElementById('mainScreen').style.display = 'block';
+    loadData();
+  } catch(e) {
+    document.getElementById('authError').style.display = 'block';
+    document.querySelector('#authScreen button').textContent = '로그인';
+  }
+}
+document.getElementById('tokenInput').addEventListener('keydown', e => { if(e.key==='Enter') doLogin(); });
+
+function doLogout() {
+  TOKEN = ''; allData = [];
+  document.getElementById('mainScreen').style.display = 'none';
+  document.getElementById('authScreen').style.display = 'flex';
+  document.getElementById('tokenInput').value = '';
+  document.getElementById('authError').style.display = 'none';
+  document.querySelector('#authScreen button').textContent = '로그인';
+}
+
+// ── 데이터 로드 ───────────────────────
+async function loadData() {
+  document.getElementById('listArea').innerHTML = '<div class="loading"><div class="spinner"></div><br>데이터 불러오는 중...</div>';
+  try {
+    const r = await fetch(`https://api.github.com/repos/${OWNER}/${REPO}/contents/${FILE}`, {
+      headers: { Authorization: 'token ' + TOKEN }
+    });
+    const meta = await r.json();
+    allData = JSON.parse(atob(meta.content.replace(/\n/g,'')));
+    updateStats();
+    renderList();
+  } catch(e) {
+    document.getElementById('listArea').innerHTML = '<div class="empty"><div class="icon">⚠️</div>데이터를 불러올 수 없습니다.</div>';
+  }
+}
+
+// ── 통계 ──────────────────────────────
+function updateStats() {
+  document.getElementById('statTotal').textContent  = allData.length;
+  document.getElementById('statActive').textContent = allData.filter(x=>x.status==='진행중').length;
+  document.getElementById('statInsta').textContent  = allData.filter(x=>x.platform==='instagram').length;
+  document.getElementById('statBlog').textContent   = allData.filter(x=>x.platform==='naver_blog').length;
+}
+
+// ── 목록 렌더 ─────────────────────────
+function renderList() {
+  const pl  = document.getElementById('filterPlatform').value;
+  const st  = document.getElementById('filterStatus').value;
+  const kw  = document.getElementById('filterSearch').value.trim().toLowerCase();
+
+  let filtered = allData.filter(d => {
+    if (pl && d.platform !== pl) return false;
+    if (st && d.status !== st) return false;
+    if (kw) {
+      const inf = (d.influencer||'').toLowerCase();
+      const prd = (d.product_name||'').toLowerCase();
+      const brd = (d.brand||'').toLowerCase();
+      if (!inf.includes(kw) && !prd.includes(kw) && !brd.includes(kw)) return false;
+    }
+    return true;
+  });
+
+  const area = document.getElementById('listArea');
+  if (!filtered.length) {
+    area.innerHTML = '<div class="empty"><div class="icon">📭</div>항목이 없습니다.</div>';
+    return;
+  }
+
+  area.innerHTML = '<div class="entry-list">' + filtered.map(d => cardHTML(d)).join('') + '</div>';
+}
+
+function cardHTML(d) {
+  const plIcon = d.platform === 'instagram' ? '📸' : '📝';
+  const plCls  = d.platform || 'instagram';
+  const stCls  = (d.status||'').replace(/\s/g,'');
+  const handle = d.handle ? `<span class="entry-handle">${d.handle}</span>` : '';
+  const statusBadge = d.status ? `<span class="badge-status ${stCls}">${d.status}</span>` : '';
+  const price = d.sale_price ? `<span class="price">₩${Number(d.sale_price).toLocaleString()}</span>` : '';
+  const discount = (d.discount_rate && d.discount_rate > 0) ? `<span>${d.discount_rate}% 할인</span>` : '';
+  const endDate = d.end_date ? `<span>~${d.end_date}</span>` : '';
+  const created = d.created_at ? `<span>등록 ${d.created_at}</span>` : '';
+  const linkBtn = d.link ? `<a class="btn-link" href="${d.link}" target="_blank">🔗 링크</a>` : '';
+
+  return `<div class="entry-card" id="card_${d.id}">
+    <div class="platform-icon ${plCls}">${plIcon}</div>
+    <div class="entry-info">
+      <div class="entry-top">
+        <span class="entry-name">${d.influencer||'(이름없음)'}</span>
+        ${handle}
+        ${statusBadge}
+      </div>
+      <div class="entry-product"><strong>${d.brand||''}</strong> ${d.product_name||''}</div>
+      <div class="entry-meta">${price}${discount}${endDate}${created}</div>
+    </div>
+    <div class="entry-actions">
+      <button class="btn-del" onclick="askDelete('${d.id}')">🗑️ 삭제</button>
+      ${linkBtn}
+    </div>
+  </div>`;
+}
+
+// ── 삭제 ──────────────────────────────
+function askDelete(id) {
+  const d = allData.find(x => x.id == id);
+  if (!d) return;
+  pendingDeleteId = id;
+  document.getElementById('modalPreview').innerHTML =
+    `<b>${d.influencer||''}</b> — ${d.brand||''} ${d.product_name||''}<br>
+     <span style="color:#888;font-size:12px;">${d.platform} · ${d.status||''} · ${d.created_at||''}</span>`;
+  document.getElementById('confirmModal').classList.add('show');
+}
+
+function closeModal() {
+  document.getElementById('confirmModal').classList.remove('show');
+  pendingDeleteId = null;
+}
+
+async function confirmDelete() {
+  closeModal();
+  const id = pendingDeleteId;
+  if (!id) return;
+
+  // 카드 흐리게
+  const card = document.getElementById('card_' + id);
+  if (card) card.classList.add('deleting');
+
+  try {
+    // 최신 SHA + 데이터 가져오기
+    const r = await fetch(`https://api.github.com/repos/${OWNER}/${REPO}/contents/${FILE}`, {
+      headers: { Authorization: 'token ' + TOKEN }
+    });
+    const meta = await r.json();
+    const currentData = JSON.parse(atob(meta.content.replace(/\n/g,'')));
+    const newData = currentData.filter(x => x.id != id);
+
+    const newContent = btoa(unescape(encodeURIComponent(JSON.stringify(newData, null, 2))));
+
+    const put = await fetch(`https://api.github.com/repos/${OWNER}/${REPO}/contents/${FILE}`, {
+      method: 'PUT',
+      headers: {
+        Authorization: 'token ' + TOKEN,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        message: `🗑️ 공구 삭제: ${id}`,
+        content: newContent,
+        sha: meta.sha
+      })
+    });
+
+    if (!put.ok) throw new Error('put failed');
+
+    // 로컬 데이터 업데이트
+    allData = allData.filter(x => x.id != id);
+    updateStats();
+    renderList();
+    showToast('삭제되었습니다 ✅', 'success');
+
+  } catch(e) {
+    if (card) card.classList.remove('deleting');
+    showToast('삭제 실패: ' + e.message, 'error');
+  }
+}
+
+// ── 토스트 ────────────────────────────
+function showToast(msg, type='') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast show ' + type;
+  setTimeout(() => { t.className = 'toast'; }, 2800);
+}
+
+// 모달 바깥 클릭시 닫기
+document.getElementById('confirmModal').addEventListener('click', function(e) {
+  if (e.target === this) closeModal();
+});
+</script>
+</body>
+</html>

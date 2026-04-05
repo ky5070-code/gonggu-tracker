@@ -149,12 +149,21 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Noto Sans KR',sans-serif;back
 }
 .inf-card{display:flex;align-items:center;gap:.75rem;padding:.8rem;background:#f9f9f9;border-radius:12px;margin-bottom:1rem}
 
+/* ── LOADING ── */
+.loading-wrap{grid-column:1/-1;text-align:center;padding:4rem 1rem;color:var(--gray)}
+@keyframes spin{to{transform:rotate(360deg)}}
+.spinner{display:inline-block;width:36px;height:36px;border:3px solid #eee;border-top-color:var(--pink);border-radius:50%;animation:spin .8s linear infinite;margin-bottom:1rem}
+
 /* ── EMPTY ── */
 .empty{grid-column:1/-1;text-align:center;padding:4rem 1rem;color:var(--gray)}
 .empty .ico{font-size:3rem;margin-bottom:1rem}
 
 /* ── FOOTER ── */
 footer{text-align:center;padding:1.5rem 1rem;font-size:.75rem;color:#bbb}
+
+/* ── 새로고침 버튼 ── */
+.refresh-btn{background:rgba(255,255,255,.2);border:none;color:white;padding:.3rem .7rem;border-radius:12px;font-size:.75rem;cursor:pointer;margin-top:.4rem;display:inline-block}
+.refresh-btn:hover{background:rgba(255,255,255,.35)}
 
 @media(max-width:640px){
   .header h1{font-size:1.35rem}
@@ -169,12 +178,13 @@ footer{text-align:center;padding:1.5rem 1rem;font-size:.75rem;color:#bbb}
 <div class="header">
   <h1>🍼 육아 공구 모아보기</h1>
   <p class="sub">인기 육아 인플루언서들의 공동구매 한눈에 보기</p>
-  <p class="last-update" id="lu">업데이트 로딩중...</p>
+  <p class="last-update" id="lu">데이터 불러오는 중...</p>
+  <button class="refresh-btn" onclick="loadData()">🔄 새로고침</button>
 </div>
 
 <div class="stats">
-  <div class="s-item"><div class="s-num" id="sTotal">-</div><div class="s-label">TODAY 공구</div></div>
-  <div class="s-item"><div class="s-num" id="sInf">-</div><div class="s-label">참여 인플루언서</div></div>
+  <div class="s-item"><div class="s-num" id="sTotal">-</div><div class="s-label">전체 공구</div></div>
+  <div class="s-item"><div class="s-num" id="sInf">-</div><div class="s-label">인플루언서</div></div>
   <div class="s-item"><div class="s-num" id="sActive">-</div><div class="s-label">진행중</div></div>
   <div class="s-item"><div class="s-num" id="sEnd">-</div><div class="s-label">오늘마감</div></div>
 </div>
@@ -186,7 +196,7 @@ footer{text-align:center;padding:1.5rem 1rem;font-size:.75rem;color:#bbb}
 </div>
 
 <div class="platform-tabs">
-  <button class="ptab on" data-p="all"   onclick="setPlatform('all')">전체</button>
+  <button class="ptab on" data-p="all"        onclick="setPlatform('all')">전체</button>
   <button class="ptab"    data-p="instagram"  onclick="setPlatform('instagram')">📸 인스타그램</button>
   <button class="ptab"    data-p="naver_blog" onclick="setPlatform('naver_blog')">📝 블로그</button>
 </div>
@@ -206,10 +216,12 @@ footer{text-align:center;padding:1.5rem 1rem;font-size:.75rem;color:#bbb}
   </select>
 </div>
 
-<div class="grid" id="grid"></div>
+<div class="grid" id="grid">
+  <div class="loading-wrap"><div class="spinner"></div><br>공구 데이터 불러오는 중...</div>
+</div>
 
 <footer>
-  매일 오전 8시 자동 업데이트 · 북마크릿으로 직접 추가하는 실제 공구만 표시<br>
+  북마크릿으로 직접 추가하는 실제 공구만 표시 · 저장 즉시 반영<br>
   📸 인스타그램 + 📝 블로그
 </footer>
 
@@ -218,53 +230,112 @@ footer{text-align:center;padding:1.5rem 1rem;font-size:.75rem;color:#bbb}
 </div>
 
 <script>
-const D = [];
-const SCRAPED_AT = "2026-04-05T14:40:07.692676";
+// ── GitHub raw URL에서 실시간 fetch ──────────────────────────
+const DATA_URL = 'https://raw.githubusercontent.com/ky5070-code/gonggu-tracker/main/data/real_gonggu.json';
 
+let D = [];
 let curCat = 'all', curPlat = 'all';
 
-function init(){
-  // 업데이트 시간
-  const d = new Date(SCRAPED_AT);
-  document.getElementById('lu').textContent =
-    `마지막 업데이트: ${d.getFullYear()}.${d.getMonth()+1}.${d.getDate()} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+// raw JSON → 렌더링용 형식으로 변환
+function transform(item) {
+  const endStr = item.end_date || '';
+  let period = '';
+  if (endStr.length === 10 && endStr.includes('-')) {
+    period = endStr.slice(5).replace('-', '/');
+  } else { period = endStr; }
 
-  // 통계
-  document.getElementById('sTotal').textContent  = D.length;
-  document.getElementById('sInf').textContent    = new Set(D.map(x=>x.influencer.handle)).size;
-  document.getElementById('sActive').textContent = D.filter(x=>x.gonggu_info.status==='진행중').length;
-  document.getElementById('sEnd').textContent    = D.filter(x=>x.gonggu_info.status==='오늘마감').length;
+  const orig = parseInt(item.original_price) || 0;
+  const sale = parseInt(item.sale_price) || orig;
+  const disc = item.discount_rate || (orig > 0 ? Math.round((1 - sale/orig)*100) : 0);
+  const handle = (item.handle || '').replace('@', '');
+  const platform = item.platform || 'instagram';
+  const infUrl = platform === 'instagram'
+    ? 'https://instagram.com/' + handle
+    : 'https://blog.naver.com/' + handle;
 
-  buildCatChips();
-  render();
+  return {
+    uid: item.id || 'real_' + Date.now(),
+    title: '[공구] ' + (item.product_name || ''),
+    link: item.link || infUrl,
+    description: item.description || '',
+    date: item.created_at || new Date().toISOString().split('T')[0],
+    is_real: true,
+    gonggu_info: {
+      product_name: item.product_name || '',
+      brand: item.brand || '',
+      price: sale.toLocaleString() + '원',
+      original_price: orig.toLocaleString() + '원',
+      discount: disc + '%',
+      period: period,
+      status: item.status || '진행중'
+    },
+    category: item.category || '기타',
+    influencer: {
+      name: item.influencer || '',
+      handle: handle,
+      platform: platform,
+      url: infUrl,
+      followers: item.followers || ''
+    }
+  };
 }
 
-function buildCatChips(){
+async function loadData() {
+  document.getElementById('lu').textContent = '데이터 불러오는 중...';
+  document.getElementById('grid').innerHTML = '<div class="loading-wrap"><div class="spinner"></div><br>공구 데이터 불러오는 중...</div>';
+  try {
+    const r = await fetch(DATA_URL + '?t=' + Date.now());
+    const raw = await r.json();
+    D = raw.map(transform).sort((a,b) => b.date.localeCompare(a.date));
+
+    // 업데이트 시간 표시
+    const latest = D.length > 0 ? D[0].date : null;
+    const now = new Date();
+    document.getElementById('lu').textContent =
+      '최근 등록: ' + (latest || '-') +
+      ' · ' + now.getHours() + ':' + String(now.getMinutes()).padStart(2,'0') + ' 기준';
+
+    // 통계
+    document.getElementById('sTotal').textContent  = D.length;
+    document.getElementById('sInf').textContent    = new Set(D.map(x=>x.influencer.handle||x.influencer.name)).size;
+    document.getElementById('sActive').textContent = D.filter(x=>x.gonggu_info.status==='진행중').length;
+    document.getElementById('sEnd').textContent    = D.filter(x=>x.gonggu_info.status==='오늘마감').length;
+
+    buildCatChips();
+    render();
+  } catch(e) {
+    document.getElementById('lu').textContent = '데이터 로드 실패';
+    document.getElementById('grid').innerHTML = '<div class="empty"><div class="ico">⚠️</div><p>데이터를 불러올 수 없습니다<br><small>' + e.message + '</small></p></div>';
+  }
+}
+
+function buildCatChips() {
   const cnt={};
   D.forEach(d=>{ const c=d.category||'기타'; cnt[c]=(cnt[c]||0)+1; });
   const bar=document.getElementById('catBar');
+  bar.innerHTML='<span class="chip on" data-c="all" onclick="setCat('all')">전체</span>';
   Object.entries(cnt).sort((a,b)=>b[1]-a[1]).forEach(([c,n])=>{
     const s=document.createElement('span');
     s.className='chip'; s.dataset.c=c;
-    s.innerHTML=`${c} <span class="cnt">${n}</span>`;
+    s.innerHTML=c+' <span class="cnt">'+n+'</span>';
     s.onclick=()=>setCat(c);
     bar.appendChild(s);
   });
 }
 
-function setCat(c){
+function setCat(c) {
   curCat=c;
   document.querySelectorAll('.chip').forEach(x=>x.classList.toggle('on',x.dataset.c===c));
   render();
 }
 
-function setPlatform(p){
+function setPlatform(p) {
   curPlat=p;
   document.querySelectorAll('.ptab').forEach(x=>x.classList.toggle('on',x.dataset.p===p));
   render();
 }
 
-function getFiltered(){
+function getFiltered() {
   const q=document.getElementById('q').value.toLowerCase();
   return D.filter(d=>{
     if(curCat!=='all'&&d.category!==curCat) return false;
@@ -278,7 +349,7 @@ function getFiltered(){
   });
 }
 
-function sorted(arr){
+function sorted(arr) {
   const s=document.getElementById('sortSel').value;
   return [...arr].sort((a,b)=>{
     switch(s){
@@ -294,86 +365,86 @@ function sorted(arr){
 }
 const numPrice=d=>parseInt((d.gonggu_info.price||'0').replace(/[^0-9]/g,''))||0;
 
-function render(){
+function render() {
   const data=sorted(getFiltered());
-  document.getElementById('resCnt').textContent=`${data.length}건`;
+  document.getElementById('resCnt').textContent=data.length+'건';
   const grid=document.getElementById('grid');
   if(!data.length){
-    grid.innerHTML=`<div class="empty"><div class="ico">🔍</div><p>검색 결과가 없습니다</p></div>`;
+    grid.innerHTML='<div class="empty"><div class="ico">🔍</div><p>검색 결과가 없습니다</p></div>';
     return;
   }
   grid.innerHTML=data.map(d=>{
     const i=d.influencer, g=d.gonggu_info;
     const av=i.platform==='instagram'?'av-ig':'av-nb';
     const ic=i.platform==='instagram'?'📸':'📝';
-    return `<div class="card${d.is_real?' real-card':''}" onclick="openModal('${d.uid}')">
-      <div class="card-top">
-        <div class="inf-row">
-          <div class="avatar ${av}">${i.name[0]}</div>
-          <div>
-            <div class="inf-name">${i.name}</div>
-            <div class="inf-handle">${ic} @${i.handle} · ${i.followers}</div>
-          </div>
-        </div>
-        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px">
-          ${d.is_real?'<span class="real-badge">✅ 실제 공구</span>':''}
-          <span class="status st-${g.status}">${g.status}</span>
-        </div>
-      </div>
-      <div class="card-body">
-        ${g.brand?`<div class="brand-tag">${g.brand}</div>`:''}
-        <div class="prod-name">${(g.product_name||d.title).replace(new RegExp('^'+g.brand+'\\s*'),'').trim()||g.product_name||d.title}</div>
-        <div class="price-row">
-          <span class="price">${g.price}</span>
-          <span class="orig">${g.original_price}</span>
-          <span class="disc">${g.discount} OFF</span>
-        </div>
-      </div>
-      <div class="card-foot">
-        <span class="cat-tag">${d.category}</span>
-        <span>~${g.period||''} 마감</span>
-      </div>
-    </div>`;
+    const nm=i.name||'?';
+    return '<div class="card real-card" onclick="openModal(''+d.uid+'')">'+
+      '<div class="card-top">'+
+        '<div class="inf-row">'+
+          '<div class="avatar '+av+'">'+nm[0]+'</div>'+
+          '<div>'+
+            '<div class="inf-name">'+nm+'</div>'+
+            '<div class="inf-handle">'+ic+' '+(i.handle?'@'+i.handle+' · ':'')+i.followers+'</div>'+
+          '</div>'+
+        '</div>'+
+        '<div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px">'+
+          '<span class="real-badge">✅ 실제 공구</span>'+
+          '<span class="status st-'+g.status+'">'+g.status+'</span>'+
+        '</div>'+
+      '</div>'+
+      '<div class="card-body">'+
+        (g.brand?'<div class="brand-tag">'+g.brand+'</div>':'')+
+        '<div class="prod-name">'+g.product_name+'</div>'+
+        '<div class="price-row">'+
+          '<span class="price">'+g.price+'</span>'+
+          '<span class="orig">'+g.original_price+'</span>'+
+          (parseInt(g.discount)>0?'<span class="disc">'+g.discount+' OFF</span>':'')+
+        '</div>'+
+      '</div>'+
+      '<div class="card-foot">'+
+        '<span class="cat-tag">'+d.category+'</span>'+
+        '<span>~'+(g.period||'')+' 마감</span>'+
+      '</div>'+
+    '</div>';
   }).join('');
 }
 
-function openModal(uid){
+function openModal(uid) {
   const d=D.find(x=>x.uid===uid); if(!d) return;
   const i=d.influencer, g=d.gonggu_info;
   const av=i.platform==='instagram'?'av-ig':'av-nb';
-  document.getElementById('modal').innerHTML=`
-    <div class="modal-head">
-      <h3>${g.product_name||d.title}</h3>
-      <button class="close-btn" onclick="closeModal()">×</button>
-    </div>
-    ${d.is_real?'<div style="background:#E8F5E9;border-radius:10px;padding:.4rem .8rem;margin-bottom:.8rem;font-size:.8rem;color:#2E7D32;font-weight:700">✅ 직접 등록한 실제 공구 데이터입니다</div>':''}
-    <div class="inf-card">
-      <div class="avatar ${av}" style="width:44px;height:44px">${i.name[0]}</div>
-      <div>
-        <div style="font-weight:800">${i.name}</div>
-        <div style="font-size:.78rem;color:#999">@${i.handle} · ${i.followers} 팔로워</div>
-      </div>
-    </div>
-    <div class="info-box">
-      <div class="info-row"><span>브랜드</span><span class="info-val">${g.brand||'-'}</span></div>
-      <div class="info-row"><span>공구가</span><span class="info-val" style="color:var(--pink);font-size:1.1rem">${g.price}</span></div>
-      <div class="info-row"><span>정가</span><span class="info-val" style="text-decoration:line-through;color:#aaa">${g.original_price}</span></div>
-      <div class="info-row"><span>할인율</span><span class="info-val" style="color:var(--pink)">${g.discount} OFF</span></div>
-      <div class="info-row"><span>마감일</span><span class="info-val">${g.period||'-'}</span></div>
-      <div class="info-row"><span>상태</span><span class="status st-${g.status}" style="padding:.2rem .6rem">${g.status}</span></div>
-    </div>
-    <a class="go-btn" href="${d.link}" target="_blank" rel="noopener">
-      ${i.platform==='instagram'?'📸 인스타그램':'📝 블로그'}에서 공구 보기 →
-    </a>
-  `;
+  document.getElementById('modal').innerHTML=
+    '<div class="modal-head">'+
+      '<h3>'+g.product_name+'</h3>'+
+      '<button class="close-btn" onclick="closeModal()">×</button>'+
+    '</div>'+
+    '<div style="background:#E8F5E9;border-radius:10px;padding:.4rem .8rem;margin-bottom:.8rem;font-size:.8rem;color:#2E7D32;font-weight:700">✅ 직접 등록한 실제 공구 데이터입니다</div>'+
+    '<div class="inf-card">'+
+      '<div class="avatar '+av+'" style="width:44px;height:44px">'+(i.name||'?')[0]+'</div>'+
+      '<div>'+
+        '<div style="font-weight:800">'+i.name+'</div>'+
+        '<div style="font-size:.78rem;color:#999">'+(i.handle?'@'+i.handle+' · ':'')+i.followers+'</div>'+
+      '</div>'+
+    '</div>'+
+    '<div class="info-box">'+
+      '<div class="info-row"><span>브랜드</span><span class="info-val">'+(g.brand||'-')+'</span></div>'+
+      '<div class="info-row"><span>공구가</span><span class="info-val" style="color:var(--pink);font-size:1.1rem">'+g.price+'</span></div>'+
+      '<div class="info-row"><span>정가</span><span class="info-val" style="text-decoration:line-through;color:#aaa">'+g.original_price+'</span></div>'+
+      '<div class="info-row"><span>할인율</span><span class="info-val" style="color:var(--pink)">'+g.discount+' OFF</span></div>'+
+      '<div class="info-row"><span>마감일</span><span class="info-val">'+(g.period||'-')+'</span></div>'+
+      '<div class="info-row"><span>상태</span><span class="status st-'+g.status+'" style="padding:.2rem .6rem">'+g.status+'</span></div>'+
+    '</div>'+
+    '<a class="go-btn" href="'+d.link+'" target="_blank" rel="noopener">'+
+      (i.platform==='instagram'?'📸 인스타그램':'📝 블로그')+'에서 공구 보기 →'+
+    '</a>';
   document.getElementById('ov').classList.add('show');
 }
-function closeModal(e){
+function closeModal(e) {
   if(!e||e.target===e.currentTarget)
     document.getElementById('ov').classList.remove('show');
 }
 document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal()});
-init();
+loadData();
 </script>
 </body>
 </html>

@@ -162,84 +162,22 @@ def load_real_data():
 
 
 def build_data():
-    random.seed(int(datetime.now().strftime("%Y%m%d")))  # 날짜별 고정 시드
     now = datetime.now()
-    results = []
 
-    # ① 실제 공구 데이터 먼저 추가 (북마크릿으로 저장된 것)
-    real_items = load_real_data()
-    results.extend(real_items)
-
-    shuffled = REAL_PRODUCTS.copy()
-    random.shuffle(shuffled)
-
-    used = set()
-    for inf in INFLUENCERS:
-        count = random.randint(2, 5)
-        picks = random.sample(shuffled, min(count, len(shuffled)))
-        for prod in picks:
-            key = f"{inf['handle']}_{prod['name']}"
-            if key in used:
-                continue
-            used.add(key)
-
-            days_ago  = random.randint(0, 3)
-            days_left = random.randint(0, 8)
-            start = (now - timedelta(days=days_ago)).strftime("%Y-%m-%d")
-            end   = (now + timedelta(days=days_left))
-
-            # 마감 상태
-            if days_left == 0:
-                status = "오늘마감"
-            elif days_left <= 2:
-                status = "마감임박"
-            elif days_left >= 7:
-                status = "오픈예정"
-            else:
-                status = "진행중"
-
-            orig   = int(str(prod["orig"]).replace(",",""))
-            price  = int(str(prod["price"]).replace(",",""))
-            disc   = round((1 - price/orig)*100)
-
-            results.append({
-                "uid": hashlib.md5(key.encode()).hexdigest()[:12],
-                "title": f"[공구] {prod['name']}",
-                "link":  inf["url"],
-                "description": f"{inf['name']}이(가) 진행하는 {prod['brand']} {prod['name']} 공동구매. 공구가 {price:,}원 ({disc}% 할인)",
-                "date":  start,
-                "gonggu_info": {
-                    "is_gonggu":     True,
-                    "product_name":  prod["name"],   # brand already embedded in name
-                    "brand":         prod["brand"],
-                    "price":         f"{price:,}원",
-                    "original_price":f"{orig:,}원",
-                    "discount":      f"{disc}%",
-                    "period":        f"{end.strftime('%m/%d')}",
-                    "status":        status,
-                    "keywords_found":["공구","공동구매","특가"]
-                },
-                "category": prod["cat"],
-                "influencer": {
-                    "id":        inf["id"],
-                    "name":      inf["name"],
-                    "handle":    inf["handle"],
-                    "platform":  inf["platform"],
-                    "url":       inf["url"],
-                    "followers": inf["followers"],
-                    "category":  inf["category"]
-                }
-            })
+    # 북마크릿으로 직접 입력한 실제 공구 데이터만 사용
+    results = load_real_data()
 
     # 최신순 정렬
     results.sort(key=lambda x: x["date"], reverse=True)
+
+    inf_names = set(r["influencer"]["name"] for r in results if r["influencer"]["name"])
 
     output = {
         "scraped_at":        now.isoformat(),
         "date":              now.strftime("%Y-%m-%d"),
         "stats": {
             "total":       len(results),
-            "influencers": len(INFLUENCERS),
+            "influencers": len(inf_names),
             "instagram":   sum(1 for r in results if r["influencer"]["platform"]=="instagram"),
             "naver":       sum(1 for r in results if r["influencer"]["platform"]=="naver_blog"),
             "errors":      0
@@ -453,7 +391,7 @@ footer{{text-align:center;padding:1.5rem 1rem;font-size:.75rem;color:#bbb}}
 <div class="platform-tabs">
   <button class="ptab on" data-p="all"   onclick="setPlatform('all')">전체</button>
   <button class="ptab"    data-p="instagram"  onclick="setPlatform('instagram')">📸 인스타그램</button>
-  <button class="ptab"    data-p="naver_blog" onclick="setPlatform('naver_blog')">📝 네이버 블로그</button>
+  <button class="ptab"    data-p="naver_blog" onclick="setPlatform('naver_blog')">📝 블로그</button>
 </div>
 
 <div class="cat-bar" id="catBar">
@@ -474,8 +412,8 @@ footer{{text-align:center;padding:1.5rem 1rem;font-size:.75rem;color:#bbb}}
 <div class="grid" id="grid"></div>
 
 <footer>
-  매일 오전 8시 자동 업데이트 · 총 {len(INFLUENCERS)}명 인플루언서 모니터링<br>
-  인스타그램 + 네이버 블로그 실시간 공구 수집
+  매일 오전 8시 자동 업데이트 · 북마크릿으로 직접 추가하는 실제 공구만 표시<br>
+  📸 인스타그램 + 📝 블로그
 </footer>
 
 <div class="overlay" id="ov" onclick="closeModal(event)">

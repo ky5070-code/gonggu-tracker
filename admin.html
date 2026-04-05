@@ -317,8 +317,8 @@ function closeModal() {
 }
 
 async function confirmDelete() {
-  closeModal();
   const id = pendingDeleteId;
+  closeModal();
   if (!id) return;
 
   // 카드 흐리게

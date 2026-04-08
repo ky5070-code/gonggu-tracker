@@ -74,7 +74,7 @@
     </div>
     <div class="step">
       <div class="step-num">4</div>
-      <div><h3>플랫폼 선택 후 저장</h3><p>📸 인스타그램 또는 📝 블로그 탭 선택 → 인플루언서, 상품명, 가격, 마감일 입력 후 저장. 처음 한 번만 GitHub 토큰 입력이 필요합니다.</p></div>
+      <div><h3>플랫폼 선택 후 저장</h3><p>📸 인스타그램 또는 📝 블로그 탭 선택 → 인플루언서, 상품명, 마감일 입력 후 저장. 처음 한 번만 GitHub 토큰 입력이 필요합니다.</p></div>
     </div>
     <div class="step">
       <div class="step-num">5</div>
@@ -154,7 +154,7 @@
       '  var catOpts=CATS.map(function(c){return "<option>"+c+"</option>";}).join("");',
       '  var bx=document.createElement("div");',
       '  bx.className="bx";',
-      '  bx.innerHTML="<button class=\\"cls\\" id=\\"_gbtX\\">&#x2715;</button><h2>🍼 공구 추가하기</h2><span class=\\"rbadge\\">✅ 실제 공구로 등록됩니다</span><div class=\\"pltab\\"><button class=\\"plbtn on\\" id=\\"_gbtPLi\\">📸 인스타그램</button><button class=\\"plbtn\\" id=\\"_gbtPLb\\">📝 블로그</button></div><label>인플루언서</label><select id=\\"_gbtI\\"></select><div id=\\"_gbtC\\" style=\\"display:none\\"><label>인플루언서명</label><input id=\\"_gbtCN\\" placeholder=\\"예: 지은맘\\"/><label>@핸들 또는 블로그ID</label><input id=\\"_gbtCH\\" placeholder=\\"예: @jieunmam\\" style=\\"margin-bottom:12px\\"/></div><label>브랜드</label><input id=\\"_gbtB\\" placeholder=\\"예: 하기스, 베베숲\\"/><label>상품명</label><input id=\\"_gbtP\\" placeholder=\\"예: 하이드로 물티슈 80매 x 10팩\\"/><div class=\\"row\\"><div><label>원가 (원)</label><input id=\\"_gbtO\\" type=\\"number\\" placeholder=\\"35000\\"/></div><div><label>공구가 (원)</label><input id=\\"_gbtS\\" type=\\"number\\" placeholder=\\"25000\\"/></div></div><div class=\\"row\\"><div><label>카테고리</label><select id=\\"_gbtCT\\">"+catOpts+"</select></div><div><label>마감일</label><input id=\\"_gbtE\\" type=\\"date\\" value=\\""+defEnd+"\\"/></div></div><label>공구 링크</label><input id=\\"_gbtL\\" value=\\""+location.href+"\\"/><button class=\\"save\\" id=\\"_gbtSV\\">💾 공구 저장하기</button><div class=\\"msg\\" id=\\"_gbtM\\"></div>";',
+      '  bx.innerHTML="<button class=\\"cls\\" id=\\"_gbtX\\">&#x2715;</button><h2>🍼 공구 추가하기</h2><span class=\\"rbadge\\">✅ 실제 공구로 등록됩니다</span><div class=\\"pltab\\"><button class=\\"plbtn on\\" id=\\"_gbtPLi\\">📸 인스타그램</button><button class=\\"plbtn\\" id=\\"_gbtPLb\\">📝 블로그</button></div><label>인플루언서</label><select id=\\"_gbtI\\"></select><div id=\\"_gbtC\\" style=\\"display:none\\"><label>인플루언서명</label><input id=\\"_gbtCN\\" placeholder=\\"예: 지은맘\\"/><label>@핸들 또는 블로그ID</label><input id=\\"_gbtCH\\" placeholder=\\"예: @jieunmam\\" style=\\"margin-bottom:12px\\"/></div><label>브랜드</label><input id=\\"_gbtB\\" placeholder=\\"예: 하기스, 베베숲\\"/><label>상품명</label><input id=\\"_gbtP\\" placeholder=\\"예: 하이드로 물티슈 80매 x 10팩\\"/><div class=\\"row\\"><div><label>카테고리</label><select id=\\"_gbtCT\\">"+catOpts+"</select></div><div><label>마감일</label><input id=\\"_gbtE\\" type=\\"date\\" value=\\""+defEnd+"\\"/></div></div><label>공구 링크</label><input id=\\"_gbtL\\" value=\\""+location.href+"\\"/><button class=\\"save\\" id=\\"_gbtSV\\">💾 공구 저장하기</button><div class=\\"msg\\" id=\\"_gbtM\\"></div>";',
       '  ov.appendChild(bx);',
       '  document.body.appendChild(ov);',
       '  function swPL(p){curPL=p;document.getElementById("_gbtPLi").className="plbtn"+(p==="instagram"?" on":"");document.getElementById("_gbtPLb").className="plbtn"+(p==="naver_blog"?" on":"");document.getElementById("_gbtI").innerHTML=buildInfOpts(p);document.getElementById("_gbtC").style.display="none";}',
@@ -177,15 +177,11 @@
       '    var iFollowers=isCust?"":p[3];',
       '    var brand=document.getElementById("_gbtB").value.trim();',
       '    var prod=document.getElementById("_gbtP").value.trim();',
-      '    var orig=parseInt(document.getElementById("_gbtO").value)||0;',
-      '    var sale=parseInt(document.getElementById("_gbtS").value)||0;',
       '    var cat=document.getElementById("_gbtCT").value;',
       '    var endDate=document.getElementById("_gbtE").value;',
       '    var link=document.getElementById("_gbtL").value;',
       '    if(!prod){alert("상품명을 입력해주세요!");return;}',
-      '    if(!sale){alert("공구가를 입력해주세요!");return;}',
-      '    var disc=orig>0?Math.round((1-sale/orig)*100):0;',
-      '    var item={id:"real_"+Date.now(),influencer:iName,handle:iHandle,platform:iPlatform,followers:iFollowers,category:cat,brand:brand||prod.split(" ")[0],product_name:prod,original_price:orig||sale,sale_price:sale,discount_rate:disc,status:"진행중",end_date:endDate,link:link,description:"",created_at:new Date().toISOString().split("T")[0],is_real:true};',
+      '    var item={id:"real_"+Date.now(),influencer:iName,handle:iHandle,platform:iPlatform,followers:iFollowers,category:cat,brand:brand,product_name:prod,status:"진행중",end_date:endDate,link:link,description:"",created_at:new Date().toISOString().split("T")[0],is_real:true};',
       '    var token=localStorage.getItem("_gp");',
       '    if(!token){',
       '      token=prompt("GitHub Personal Access Token 입력\\n(처음 한 번만, 이후 자동 저장)\\n\\ngithub.com/settings/tokens 에서 repo 권한으로 생성");',

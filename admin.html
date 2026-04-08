@@ -276,8 +276,6 @@ function cardHTML(d) {
   const stCls  = (d.status||'').replace(/\s/g,'');
   const handle = d.handle ? `<span class="entry-handle">${d.handle}</span>` : '';
   const statusBadge = d.status ? `<span class="badge-status ${stCls}">${d.status}</span>` : '';
-  const price = d.sale_price ? `<span class="price">₩${Number(d.sale_price).toLocaleString()}</span>` : '';
-  const discount = (d.discount_rate && d.discount_rate > 0) ? `<span>${d.discount_rate}% 할인</span>` : '';
   const endDate = d.end_date ? `<span>~${d.end_date}</span>` : '';
   const created = d.created_at ? `<span>등록 ${d.created_at}</span>` : '';
   const linkBtn = d.link ? `<a class="btn-link" href="${d.link}" target="_blank">🔗 링크</a>` : '';
@@ -291,7 +289,7 @@ function cardHTML(d) {
         ${statusBadge}
       </div>
       <div class="entry-product"><strong>${d.brand||''}</strong> ${d.product_name||''}</div>
-      <div class="entry-meta">${price}${discount}${endDate}${created}</div>
+      <div class="entry-meta">${endDate}${created}</div>
     </div>
     <div class="entry-actions">
       <button class="btn-del" onclick="askDelete('${d.id}')">🗑️ 삭제</button>

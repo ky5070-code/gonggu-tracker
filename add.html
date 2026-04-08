@@ -65,12 +65,16 @@
   .btn-paste { padding: 13px 14px; background: #f0f2ff; color: #667eea; border: 1.5px solid #d0d8ff; border-radius: 12px; font-size: 13px; font-weight: 600; cursor: pointer; white-space: nowrap; flex-shrink: 0; }
   .btn-paste:active { background: #667eea; color: white; }
 
-  /* 가격 행 */
-  .price-row { display: flex; gap: 10px; }
-  .price-row .field { flex: 1; }
-
   /* 커스텀 인플루언서 입력 */
   #customInfArea { display: none; margin-top: 10px; }
+
+  /* 상세 입력 토글 */
+  .detail-toggle { display: flex; align-items: center; justify-content: center; gap: 8px; padding: 14px; background: white; border-radius: 14px; margin-bottom: 14px; box-shadow: 0 2px 12px rgba(0,0,0,0.06); cursor: pointer; border: 1.5px dashed #c5d0ff; color: #667eea; font-size: 14px; font-weight: 600; }
+  .detail-toggle:active { background: #f0f2ff; }
+  #detailSection { display: none; }
+
+  /* 필수 표시 */
+  .required { color: #e74c3c; margin-left: 2px; }
 
   /* 제출 버튼 */
   .submit-area { position: fixed; bottom: 0; left: 0; right: 0; padding: 12px 20px 28px; background: white; box-shadow: 0 -4px 20px rgba(0,0,0,0.08); }
@@ -84,6 +88,8 @@
   .done-box .icon { font-size: 56px; margin-bottom: 16px; }
   .done-box h2 { font-size: 20px; font-weight: 700; margin-bottom: 8px; }
   .done-box p { color: #888; font-size: 14px; line-height: 1.6; margin-bottom: 24px; }
+  .done-info { background: #f0f2ff; border-radius: 12px; padding: 14px 16px; text-align: left; margin-bottom: 20px; font-size: 13px; color: #555; line-height: 1.8; }
+  .done-info strong { color: #333; }
   .btn-another { width: 100%; padding: 15px; background: linear-gradient(135deg, #667eea, #764ba2); color: white; border: none; border-radius: 14px; font-size: 16px; font-weight: 700; cursor: pointer; margin-bottom: 10px; }
   .btn-site { width: 100%; padding: 15px; background: #f5f5f5; color: #555; border: none; border-radius: 14px; font-size: 16px; font-weight: 600; cursor: pointer; text-decoration: none; display: block; }
 
@@ -107,10 +113,10 @@
 <div class="header">
   <div class="header-top">
     <div>
-      <h1>🛍️ 공구 추가</h1>
-      <p>발견한 공구를 바로 등록하세요</p>
+      <h1>🛍️ 공구 수집</h1>
+      <p>링크 저장 후 상세 정보는 나중에</p>
     </div>
-    <button class="btn-setting" onclick="openSheet()" title="설정">⚙️</button>
+    <button class="btn-setting" onclick="openSheet()">⚙️</button>
   </div>
 </div>
 
@@ -130,17 +136,27 @@
 <!-- 메인 폼 -->
 <div id="mainScreen">
 
-  <!-- 플랫폼 토글 -->
+  <!-- ① 링크 -->
+  <div class="section">
+    <div class="section-title">🔗 공구 링크 <span style="color:#e74c3c">*</span></div>
+    <div class="field">
+      <div class="url-row">
+        <input type="url" id="fLink" placeholder="https://..." inputmode="url" />
+        <button class="btn-paste" onclick="pasteURL()">📋 붙여넣기</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ② 플랫폼 토글 -->
   <div class="pl-toggle">
     <button class="pl-btn on" id="btnPLi" onclick="setPL('instagram')">📸 인스타그램</button>
     <button class="pl-btn" id="btnPLb" onclick="setPL('naver_blog')">📝 블로그</button>
   </div>
 
-  <!-- 인플루언서 -->
+  <!-- ③ 인플루언서 -->
   <div class="section">
-    <div class="section-title">👤 인플루언서</div>
+    <div class="section-title">👤 인플루언서 <span style="color:#e74c3c">*</span></div>
     <div class="field">
-      <label>이름 선택</label>
       <select id="selInf" onchange="onInfChange()"></select>
     </div>
     <div id="customInfArea">
@@ -155,71 +171,60 @@
     </div>
   </div>
 
-  <!-- 상품 정보 -->
+  <!-- ④ 상품명 -->
   <div class="section">
-    <div class="section-title">📦 상품 정보</div>
+    <div class="section-title">📦 상품명 <span style="color:#e74c3c">*</span></div>
     <div class="field">
-      <label>브랜드</label>
-      <input type="text" id="fBrand" placeholder="예: 하기스, 에르고베이비" />
-    </div>
-    <div class="field">
-      <label>상품명</label>
       <input type="text" id="fProduct" placeholder="예: 네이처메이드 기저귀 L 4팩" />
-    </div>
-    <div class="field">
-      <label>카테고리</label>
-      <select id="fCat">
-        <option value="">카테고리 선택</option>
-        <option>기저귀/위생</option>
-        <option>분유/이유식</option>
-        <option>의류/패션</option>
-        <option>장난감/놀이</option>
-        <option>유아가구/침구</option>
-        <option>스킨케어/목욕</option>
-        <option>유모차/카시트</option>
-        <option>수유용품</option>
-        <option>교육/책</option>
-        <option>식품/간식</option>
-        <option>기타</option>
-      </select>
-    </div>
-    <div class="price-row">
-      <div class="field">
-        <label>정가 (원)</label>
-        <input type="number" id="fOrigPrice" placeholder="0" inputmode="numeric" />
-      </div>
-      <div class="field">
-        <label>공구가 (원)</label>
-        <input type="number" id="fSalePrice" placeholder="0" inputmode="numeric" />
-      </div>
     </div>
   </div>
 
-  <!-- 공구 정보 -->
-  <div class="section">
-    <div class="section-title">📅 공구 정보</div>
-    <div class="field">
-      <label>상태</label>
-      <select id="fStatus">
-        <option value="진행중">진행중</option>
-        <option value="예정">예정</option>
-        <option value="종료">종료</option>
-      </select>
-    </div>
-    <div class="field">
-      <label>마감일</label>
-      <input type="date" id="fEndDate" />
-    </div>
-    <div class="field">
-      <label>공구 링크 URL</label>
-      <div class="url-row">
-        <input type="url" id="fLink" placeholder="https://..." inputmode="url" />
-        <button class="btn-paste" onclick="pasteURL()">📋 붙여넣기</button>
+  <!-- 상세 입력 토글 -->
+  <div class="detail-toggle" onclick="toggleDetail()" id="detailToggleBtn">
+    ＋ 상세 정보 추가 (브랜드·카테고리·마감일)
+  </div>
+
+  <!-- 상세 섹션 (선택) -->
+  <div id="detailSection">
+    <div class="section">
+      <div class="section-title">📋 상세 정보 (선택)</div>
+      <div class="field">
+        <label>브랜드</label>
+        <input type="text" id="fBrand" placeholder="예: 하기스, 에르고베이비" />
       </div>
-    </div>
-    <div class="field">
-      <label>메모 (선택)</label>
-      <textarea id="fDesc" placeholder="추가 정보나 메모..."></textarea>
+      <div class="field">
+        <label>카테고리</label>
+        <select id="fCat">
+          <option value="">카테고리 선택</option>
+          <option>기저귀/위생</option>
+          <option>분유/이유식</option>
+          <option>의류/패션</option>
+          <option>장난감/놀이</option>
+          <option>유아가구/침구</option>
+          <option>스킨케어/목욕</option>
+          <option>유모차/카시트</option>
+          <option>수유용품</option>
+          <option>교육/책</option>
+          <option>식품/간식</option>
+          <option>기타</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>상태</label>
+        <select id="fStatus">
+          <option value="진행중">진행중</option>
+          <option value="예정">예정</option>
+          <option value="종료">종료</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>마감일</label>
+        <input type="date" id="fEndDate" />
+      </div>
+      <div class="field">
+        <label>메모</label>
+        <textarea id="fDesc" placeholder="추가 정보나 메모..."></textarea>
+      </div>
     </div>
   </div>
 
@@ -229,9 +234,10 @@
 <!-- 완료 화면 -->
 <div id="doneScreen">
   <div class="done-box">
-    <div class="icon">🎉</div>
-    <h2>등록 완료!</h2>
-    <p>공구가 성공적으로 추가됐어요.<br>사이트에서 바로 확인할 수 있어요.</p>
+    <div class="icon">✅</div>
+    <h2>저장 완료!</h2>
+    <p>공구가 수집됐어요.</p>
+    <div class="done-info" id="doneSummary"></div>
     <button class="btn-another" onclick="resetForm()">➕ 또 추가하기</button>
     <a class="btn-site" href="https://ky5070-code.github.io/gonggu-tracker/" target="_blank">🌐 사이트 보기</a>
   </div>
@@ -239,7 +245,7 @@
 
 <!-- 제출 버튼 -->
 <div class="submit-area" id="submitArea">
-  <button class="btn-submit" id="btnSubmit" onclick="submitForm()">✅ 공구 등록</button>
+  <button class="btn-submit" id="btnSubmit" onclick="submitForm()">⚡ 빠른 저장</button>
 </div>
 
 <!-- 설정 시트 -->
@@ -283,21 +289,13 @@ const INFS_B = [
 
 let curPL = 'instagram';
 let TOKEN = '';
+let detailOpen = false;
 
 // ── 초기화 ─────────────────────────────
 window.onload = function() {
   TOKEN = localStorage.getItem('gonggu_token') || '';
-  if (TOKEN) {
-    showMain();
-  } else {
-    document.getElementById('setupScreen').style.display = 'block';
-  }
+  if (TOKEN) { showMain(); } else { document.getElementById('setupScreen').style.display = 'block'; }
   buildInfOpts('instagram');
-
-  // 오늘 날짜 기본값
-  const today = new Date();
-  const d = today.toISOString().split('T')[0];
-  document.getElementById('fEndDate').value = d;
 };
 
 // ── 토큰 설정 ──────────────────────────
@@ -339,17 +337,11 @@ function closeSheet() {
 async function updateToken() {
   const t = document.getElementById('sheetToken').value.trim();
   if (!t || t.includes('...')) { closeSheet(); return; }
-  TOKEN = t;
-  localStorage.setItem('gonggu_token', t);
-  closeSheet();
-  alert('토큰이 저장됐어요!');
+  TOKEN = t; localStorage.setItem('gonggu_token', t); closeSheet(); alert('저장됐어요!');
 }
 function clearToken() {
   if (!confirm('토큰을 초기화할까요?')) return;
-  TOKEN = '';
-  localStorage.removeItem('gonggu_token');
-  closeSheet();
-  location.reload();
+  TOKEN = ''; localStorage.removeItem('gonggu_token'); closeSheet(); location.reload();
 }
 
 // ── 플랫폼 토글 ────────────────────────
@@ -362,58 +354,54 @@ function setPL(p) {
 
 function buildInfOpts(p) {
   const list = p === 'instagram' ? INFS_I : INFS_B;
-  const sel = document.getElementById('selInf');
-  sel.innerHTML = list.map(i =>
+  document.getElementById('selInf').innerHTML = list.map(i =>
     `<option value="${i[0]}|${i[1]}|${i[2]}|${i[3]}">${i[0]}${i[1] ? ' '+i[1] : ''}</option>`
   ).join('');
   onInfChange();
 }
 
 function onInfChange() {
-  const val = document.getElementById('selInf').value;
-  const isCust = val.startsWith('기타');
+  const isCust = document.getElementById('selInf').value.startsWith('기타');
   document.getElementById('customInfArea').style.display = isCust ? 'block' : 'none';
+}
+
+// ── 상세 입력 토글 ─────────────────────
+function toggleDetail() {
+  detailOpen = !detailOpen;
+  document.getElementById('detailSection').style.display = detailOpen ? 'block' : 'none';
+  document.getElementById('detailToggleBtn').textContent = detailOpen
+    ? '✕ 상세 정보 닫기'
+    : '＋ 상세 정보 추가 (브랜드·카테고리·마감일)';
+  document.getElementById('btnSubmit').textContent = detailOpen ? '✅ 저장' : '⚡ 빠른 저장';
 }
 
 // ── URL 붙여넣기 ───────────────────────
 async function pasteURL() {
   try {
     const text = await navigator.clipboard.readText();
-    if (text.startsWith('http')) {
-      document.getElementById('fLink').value = text;
-    }
-  } catch(e) {
-    document.getElementById('fLink').focus();
-  }
+    if (text.startsWith('http')) document.getElementById('fLink').value = text;
+  } catch(e) { document.getElementById('fLink').focus(); }
 }
 
 // ── 폼 제출 ────────────────────────────
 async function submitForm() {
   const btn = document.getElementById('btnSubmit');
-
-  // 필수값 체크
-  const brand   = document.getElementById('fBrand').value.trim();
-  const product = document.getElementById('fProduct').value.trim();
   const link    = document.getElementById('fLink').value.trim();
+  const product = document.getElementById('fProduct').value.trim();
+  if (!link)    { alert('공구 링크를 붙여넣어 주세요.'); return; }
   if (!product) { alert('상품명을 입력해주세요.'); return; }
-  if (!link)    { alert('공구 링크를 입력해주세요.'); return; }
 
-  // 인플루언서 정보
   const selVal = document.getElementById('selInf').value;
   const isCust = selVal.startsWith('기타');
   let infName, infHandle, infFollowers;
   if (isCust) {
-    infName     = document.getElementById('custName').value.trim() || '기타';
-    infHandle   = document.getElementById('custHandle').value.trim();
+    infName = document.getElementById('custName').value.trim() || '기타';
+    infHandle = document.getElementById('custHandle').value.trim();
     infFollowers = '';
   } else {
     const p = selVal.split('|');
     infName = p[0]; infHandle = p[1]; infFollowers = p[3];
   }
-
-  const origPrice = parseInt(document.getElementById('fOrigPrice').value) || 0;
-  const salePrice = parseInt(document.getElementById('fSalePrice').value) || origPrice;
-  const discount  = origPrice > 0 ? Math.round((1 - salePrice/origPrice)*100) : 0;
 
   const entry = {
     id: 'real_' + Date.now(),
@@ -421,13 +409,10 @@ async function submitForm() {
     handle: infHandle,
     platform: isCust ? curPL : selVal.split('|')[2],
     followers: infFollowers,
-    category: document.getElementById('fCat').value || '기타',
-    brand: brand,
+    category: document.getElementById('fCat').value || '미분류',
+    brand: document.getElementById('fBrand').value.trim(),
     product_name: product,
-    original_price: origPrice,
-    sale_price: salePrice,
-    discount_rate: discount,
-    status: document.getElementById('fStatus').value,
+    status: document.getElementById('fStatus').value || '진행중',
     end_date: document.getElementById('fEndDate').value,
     link: link,
     description: document.getElementById('fDesc').value.trim(),
@@ -435,67 +420,61 @@ async function submitForm() {
     is_real: true
   };
 
-  // 버튼 로딩
   btn.disabled = true;
   btn.innerHTML = '<span class="spin"></span>저장 중...';
 
   try {
-    // 현재 파일 가져오기
     const r = await fetch(`https://api.github.com/repos/${OWNER}/${REPO}/contents/${FILE}`, {
       headers: { Authorization: 'token ' + TOKEN }
     });
     const meta = await r.json();
-    const b64 = meta.content.replace(/\n/g,'');
-    const bin = atob(b64);
+    const bin = atob(meta.content.replace(/\n/g,''));
     const bytes = new Uint8Array(bin.length);
     for (let i=0; i<bin.length; i++) bytes[i] = bin.charCodeAt(i);
     const currentData = JSON.parse(new TextDecoder('utf-8').decode(bytes));
-
     currentData.push(entry);
-    const newContent = btoa(unescape(encodeURIComponent(JSON.stringify(currentData, null, 2))));
 
     const put = await fetch(`https://api.github.com/repos/${OWNER}/${REPO}/contents/${FILE}`, {
       method: 'PUT',
       headers: { Authorization: 'token ' + TOKEN, 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        message: `✅ 공구 추가: ${infName} - ${product}`,
-        content: newContent,
+        message: `✅ 공구 수집: ${infName} - ${product}`,
+        content: btoa(unescape(encodeURIComponent(JSON.stringify(currentData, null, 2)))),
         sha: meta.sha
       })
     });
-
     if (!put.ok) throw new Error('저장 실패');
 
-    // 완료 화면
+    // 완료 요약
+    document.getElementById('doneSummary').innerHTML =
+      `<strong>인플루언서</strong> ${infName}<br>` +
+      `<strong>상품명</strong> ${product}<br>` +
+      `<strong>플랫폼</strong> ${entry.platform === 'instagram' ? '📸 인스타그램' : '📝 블로그'}<br>` +
+      `<strong>링크</strong> <a href="${link}" target="_blank" style="color:#667eea;word-break:break-all;">${link.slice(0,50)}${link.length>50?'…':''}</a>`;
+
     document.getElementById('mainScreen').style.display = 'none';
     document.getElementById('submitArea').style.display = 'none';
     document.getElementById('doneScreen').style.display = 'block';
 
   } catch(e) {
-    alert('오류가 발생했습니다: ' + e.message);
+    alert('오류: ' + e.message);
     btn.disabled = false;
-    btn.innerHTML = '✅ 공구 등록';
+    btn.innerHTML = detailOpen ? '✅ 저장' : '⚡ 빠른 저장';
   }
 }
 
 // ── 폼 초기화 ──────────────────────────
 function resetForm() {
-  document.getElementById('fBrand').value = '';
-  document.getElementById('fProduct').value = '';
+  ['fLink','fProduct','fBrand','fDesc','custName','custHandle'].forEach(id => {
+    document.getElementById(id).value = '';
+  });
   document.getElementById('fCat').value = '';
-  document.getElementById('fOrigPrice').value = '';
-  document.getElementById('fSalePrice').value = '';
-  document.getElementById('fLink').value = '';
-  document.getElementById('fDesc').value = '';
   document.getElementById('fStatus').value = '진행중';
-  document.getElementById('custName').value = '';
-  document.getElementById('custHandle').value = '';
+  document.getElementById('fEndDate').value = '';
   document.getElementById('btnSubmit').disabled = false;
-  document.getElementById('btnSubmit').innerHTML = '✅ 공구 등록';
+  document.getElementById('btnSubmit').innerHTML = '⚡ 빠른 저장';
+  if (detailOpen) toggleDetail();
   setPL('instagram');
-
-  const today = new Date().toISOString().split('T')[0];
-  document.getElementById('fEndDate').value = today;
 
   document.getElementById('doneScreen').style.display = 'none';
   document.getElementById('mainScreen').style.display = 'block';

@@ -209,10 +209,7 @@ footer{text-align:center;padding:1.5rem 1rem;font-size:.75rem;color:#bbb}
   <span class="res-cnt" id="resCnt">0건</span>
   <select class="sort-sel" id="sortSel" onchange="render()">
     <option value="latest">최신순</option>
-    <option value="discount">할인율 높은순</option>
     <option value="ending">마감임박순</option>
-    <option value="price_lo">가격 낮은순</option>
-    <option value="price_hi">가격 높은순</option>
   </select>
 </div>
 
@@ -263,9 +260,6 @@ function transform(item) {
     gonggu_info: {
       product_name: item.product_name || '',
       brand: item.brand || '',
-      price: sale.toLocaleString() + '원',
-      original_price: orig.toLocaleString() + '원',
-      discount: disc + '%',
       period: period,
       status: item.status || '진행중'
     },
@@ -354,7 +348,6 @@ function sorted(arr) {
   return [...arr].sort((a,b)=>{
     switch(s){
       case 'latest':   return b.date.localeCompare(a.date);
-      case 'discount': return parseInt(b.gonggu_info.discount)-parseInt(a.gonggu_info.discount);
       case 'ending':   const o={'오늘마감':0,'마감임박':1,'진행중':2,'오픈예정':3};
                        return (o[a.gonggu_info.status]??4)-(o[b.gonggu_info.status]??4);
       case 'price_lo': return numPrice(a)-numPrice(b);
@@ -395,11 +388,6 @@ function render() {
       '<div class="card-body">'+
         (g.brand?'<div class="brand-tag">'+g.brand+'</div>':'')+
         '<div class="prod-name">'+g.product_name+'</div>'+
-        '<div class="price-row">'+
-          '<span class="price">'+g.price+'</span>'+
-          '<span class="orig">'+g.original_price+'</span>'+
-          (parseInt(g.discount)>0?'<span class="disc">'+g.discount+' OFF</span>':'')+
-        '</div>'+
       '</div>'+
       '<div class="card-foot">'+
         '<span class="cat-tag">'+d.category+'</span>'+
@@ -428,9 +416,6 @@ function openModal(uid) {
     '</div>'+
     '<div class="info-box">'+
       '<div class="info-row"><span>브랜드</span><span class="info-val">'+(g.brand||'-')+'</span></div>'+
-      '<div class="info-row"><span>공구가</span><span class="info-val" style="color:var(--pink);font-size:1.1rem">'+g.price+'</span></div>'+
-      '<div class="info-row"><span>정가</span><span class="info-val" style="text-decoration:line-through;color:#aaa">'+g.original_price+'</span></div>'+
-      '<div class="info-row"><span>할인율</span><span class="info-val" style="color:var(--pink)">'+g.discount+' OFF</span></div>'+
       '<div class="info-row"><span>마감일</span><span class="info-val">'+(g.period||'-')+'</span></div>'+
       '<div class="info-row"><span>상태</span><span class="status st-'+g.status+'" style="padding:.2rem .6rem">'+g.status+'</span></div>'+
     '</div>'+
